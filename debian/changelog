@@ -1,3 +1,41 @@
+wmrack (1.0b5-4) unstable; urgency=low
+
+  * Upload for fhs compliance
+  * Closes: #44538
+
+ -- Sean E. Perry <shaleh@debian.org>  Tue,  7 Sep 1999 14:46:52 -0700
+
+wmrack (1.0b5-3) unstable; urgency=low
+
+  * New maintainer
+
+ -- Sean E. Perry <shaleh@debian.org>  Fri,  3 Sep 1999 16:13:17 -0700
+
+wmrack (1.0b5-2) unstable; urgency=low
+
+  * debian/control: improved description (closes: bug#33399)
+  * debian/README.Debian: added note regarding audio devices (closes:
+    bug#31308)
+  * 1.0b5 added signal handling (closes: bug#29211, bug#31257)
+
+ -- Marcelo E. Magallon <mmagallo@debian.org>  Sun, 13 Jun 1999 10:13:13 -0600
+
+wmrack (1.0b5-1) frozen unstable; urgency=low
+
+  * New upstream release
+  * Renamed source package back to wmrack
+
+ -- Marcelo E. Magallon <mmagallo@debian.org>  Thu, 31 Dec 1998 18:38:40 -0600
+
+WMRack (1.0b3-1) unstable; urgency=low
+
+  * New upstream version
+  * Renaming source package from wmrack to WMRack, upstream's name
+  * Patched a bit to prevent wmrack to crash on startup if no
+    configuration file is found
+
+ -- Marcelo E. Magallon <mmagallo@debian.org>  Sat, 11 Apr 1998 22:09:54 -0600
+
 wmrack (0.9-1) unstable; urgency=low
 
   * Initial release
@@ -7,5 +45,5 @@ wmrack (0.9-1) unstable; urgency=low
 Local variables:
 mode: debian-changelog
 mode: auto-fill
-add-log-mailing-address: "mmagallo@debian.org"
+add-log-mailing-address: "shaleh@debian.org"
 End:

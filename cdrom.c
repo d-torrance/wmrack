@@ -1,25 +1,28 @@
 /*
- * $Id: cdrom.c,v 1.4 1997/06/12 16:27:28 ograf Exp $
+ * $Id: cdrom.c,v 1.17.2.4 1998/08/06 19:38:11 ograf Exp $
  *
  * cdrom utility functions for WMRack
  *
- * written by Oliver Graf <ograf@fga.de>
+ * Copyright (c) 1997 by Oliver Graf <ograf@fga.de>
  *
  * some hints taken from WorkBone
+ *
+ * this is very linux specific !!!
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <errno.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/param.h>
 #include <sys/stat.h>
-#include <sys/ustat.h>
 #include <sys/time.h>
 #include <fcntl.h>
+#include <sys/vfs.h>
 
 #ifdef linux
 #  include <linux/cdrom.h>
@@ -61,9 +64,9 @@ unsigned long cddb_discid(CDInfo *cdinfo)
 
   /* For backward compatibility this algorithm must not change */
   for (i=0; i<cdinfo->tracks; i++) {
-    n+=cddb_sum((cdinfo->track[i].toc.minute*60) + cdinfo->track[i].toc.second);
-    t+=((cdinfo->track[i+1].toc.minute*60) + cdinfo->track[i+1].toc.second) -
-      ((cdinfo->track[i].toc.minute*60) + cdinfo->track[i].toc.second);
+    n+=cddb_sum((cdinfo->track[i].start.minute*60) + cdinfo->track[i].start.second);
+    t+=((cdinfo->track[i+1].start.minute*60) + cdinfo->track[i+1].start.second) -
+      ((cdinfo->track[i].start.minute*60) + cdinfo->track[i].start.second);
   }
   cdinfo->discid=((n % 0xff) << 24 | t << 8 | cdinfo->tracks);
   return cdinfo->discid;
@@ -73,86 +76,78 @@ unsigned long cddb_discid(CDInfo *cdinfo)
  * cd_readTOC(CD)
  *
  * Read the table of contents from the CD.
+ * returns 0 on success
  */
-CDInfo *cd_readTOC(CD *cd)
+int cd_readTOC(CD *cd)
 {
   struct cdrom_tochdr   hdr;
   struct cdrom_tocentry entry;
-  int                   i;
-  CDInfo                *info;
+  int                   i, j;
   MSF                   tmp;
 
   if (cd->fd<0)
-    return NULL;
-
-  info=(CDInfo *)malloc(sizeof(CDInfo));
-  if (info==NULL)
-    {
-      perror("cd_readTOC[malloc]");
-      return NULL;
-    }
+    return 1;
 
   if (ioctl(cd->fd, CDROMREADTOCHDR, &hdr))
     {
       perror("cd_readTOC[readtochdr]");
-      free(info);
-      return NULL;
+      return 1;
     }
 
-  info->len=info->slen=0;
-  info->start=hdr.cdth_trk0;
-  info->end=hdr.cdth_trk1;
-  info->tracks=hdr.cdth_trk1-hdr.cdth_trk0+1;
+  cd->info.start=hdr.cdth_trk0;
+  cd->info.end=hdr.cdth_trk1;
+  cd->info.tracks=hdr.cdth_trk1-hdr.cdth_trk0+1;
 #ifdef DEBUG
   fprintf(stderr,"cd_readTOC[DEBUG]: read header with %d tracks\n",
-	  info->tracks);
+	  cd->info.tracks);
 #endif
 
-  info->track=malloc((info->tracks+1)*sizeof(TrackInfo));
-  if (info->track==NULL)
+  cd->info.track=malloc(cd->info.tracks*sizeof(TrackInfo));
+  if (cd->info.track==NULL)
     {
       perror("cd_readTOC[malloc]");
-      free(info);
-      return NULL;
+      return 1;
     }
-  for (i=0; i<=info->tracks; i++)
+  for (i=0; i<=cd->info.tracks; i++)
     {
-      if (i==info->tracks)
+      if (i==cd->info.tracks)
 	entry.cdte_track=CDROM_LEADOUT;
       else
-	entry.cdte_track=info->start+i;
+	entry.cdte_track=cd->info.start+i;
       entry.cdte_format=CDROM_MSF;
       if (ioctl(cd->fd, CDROMREADTOCENTRY, &entry))
 	{
 	  perror("cd_readTOC[tocentry read]");
-	  free(info->track);
-	  free(info);
-	  return NULL;
+	  free(cd->info.track);
+	  return 1;
 	}
 
-      info->track[i].num=i+1;
-      msftoMSF(info->track[i].toc,entry.cdte_addr.msf);
-      info->track[i].start=(((entry.cdte_addr.msf.minute*CD_SECS)+
-			     entry.cdte_addr.msf.second)*CD_FRAMES+
-			    entry.cdte_addr.msf.frame);
-      info->track[i].len=-1;
-      info->track[i].slen=-1;
-      info->track[i].data=entry.cdte_ctrl&CDROM_DATA_TRACK?1:0;
+      if (entry.cdte_track!=CDROM_LEADOUT)
+	{
+	  cd->info.track[i].num=i+1;
+	  msftoMSF(cd->info.track[i].start,entry.cdte_addr.msf);
+	  cd->info.track[i].end.minute=-1;
+	  cd->info.track[i].end.second=-1;
+	  cd->info.track[i].end.frame=-1;
+	  cd->info.track[i].data=entry.cdte_ctrl&CDROM_DATA_TRACK?1:0;
+	  if (i>0)
+	    {
+	      cd->info.track[i-1].end=cd->info.track[i].start;
+	      cd->info.track[i-1].length=subMSF(cd->info.track[i-1].end,
+						cd->info.track[i-1].start);
+	    }
+	}
+      else
+	{
+	  msftoMSF(cd->info.track[i-1].end,entry.cdte_addr.msf);
+	  cd->info.track[i-1].length=subMSF(cd->info.track[i-1].end,
+					    cd->info.track[i-1].start);
+	}
     }
 
-  /* Now compute actual track lengths. */
-  for (i=0; i<info->tracks; i++)
-    {
-      info->track[i].len=info->track[i+1].start-info->track[i].start;
-      info->track[i].slen=info->track[i].len/CD_FRAMES;
-    }
+  cddb_discid(&cd->info);
 
-  tmp=subMSF(info->track[info->tracks].toc,info->track[0].toc);
-  info->len=msfFrames(tmp);
-  info->slen=info->len/CD_FRAMES;
-  cddb_discid(info);
-
-  return info;
+  return 0;
 }
 
 /*
@@ -164,12 +159,12 @@ int cd_playMSF(CD *cd, MSF start, MSF end)
 {
   struct cdrom_msf msf;
 
-  if (cd==NULL || cd->fd<0 || cd->info==NULL)
+  if (cd==NULL || cd->fd<0)
     return 1;
 
   MSFtocdmsf(msf,start,end);
 
-  if (cd->info->current.mode==CDM_STOP)
+  if (cd->info.current.mode==CDM_STOP)
     if (ioctl(cd->fd, CDROMSTART))
       {
 	perror("cd_playMSF[CDROMSTART]");
@@ -179,7 +174,7 @@ int cd_playMSF(CD *cd, MSF start, MSF end)
   if (ioctl(cd->fd, CDROMPLAYMSF, &msf))
     {
       printf("cd_playMSF[playmsf]\n");
-      printf("  msf = %d:%d:%d %d:%d:%d\n",
+      printf("  msf = %02d:%02d:%02d %02d:%02d:%02d\n",
 	     msf.cdmsf_min0, msf.cdmsf_sec0, msf.cdmsf_frame0,
 	     msf.cdmsf_min1, msf.cdmsf_sec1, msf.cdmsf_frame1);
       perror("cd_playMSF[CDROMPLAYMSF]");
@@ -189,15 +184,21 @@ int cd_playMSF(CD *cd, MSF start, MSF end)
 }
 
 /*
- * cdinfo_free(info)
+ * cd_freeinfo(cd)
  *
  * frees a allocate CDInfo
  */
-void cdinfo_free(CDInfo *info)
+void cd_freeinfo(CD *cd)
 {
-  if (info->track)
-    free(info->track);
-  free(info);
+  if (cd->info.track)
+    free(cd->info.track);
+  if (cd->info.list.track)
+    free(cd->info.list.track);
+  memset(&cd->info,0x0,sizeof(CDInfo));
+  memset(&cd->info.current,0xff,sizeof(CDPosition));
+  /* paranoia */
+  cd->info.track=NULL;
+  cd->info.list.track=NULL;
 }
 
 /*
@@ -210,8 +211,7 @@ void cd_close(CD *cd)
   if (cd==NULL)
     return;
 
-  if (cd->numcd)
-    cdinfo_free(cd->info);
+  cd_freeinfo(cd);
   free(cd->device);
   close(cd->fd);
   free(cd);
@@ -244,8 +244,8 @@ CD *cd_open(char *device, int noopen)
   cd->device=strdup(device);
   cd->fd=-1;
   cd->status=-1;
-  cd->numcd=0;
-  cd->info=NULL;
+  memset(&cd->info,0x0,sizeof(CDInfo));
+  memset(&cd->info.current,0xff,sizeof(CDPosition));
 
   if (!noopen)
     cd_reopen(cd);
@@ -266,9 +266,7 @@ int cd_suspend(CD *cd)
   close(cd->fd);
   cd->fd=-1;
   cd->status=-1;
-
-  if (cd->info)
-    memset(&cd->info->current,0xff,sizeof(CDPosition));
+  cd_freeinfo(cd);
 
   return 0;
 }
@@ -280,6 +278,8 @@ int cd_suspend(CD *cd)
  */
 int cd_reopen(CD *cd)
 {
+  int start, end, track;
+  
   if (cd==NULL)
     return 1;
 
@@ -289,21 +289,46 @@ int cd_reopen(CD *cd)
       return 1;
     }
 
-  if (cd->info)
-    cdinfo_free(cd->info);
+  cd_freeinfo(cd);
 
-  cd->info=cd_readTOC(cd);
-  if (cd->info!=NULL)
+  if (!cd_readTOC(cd))
     {
-      cd->status=1;
-      cd->numcd=1;
-      cd->info->play.start_track=cd->info->start;
-      cd->info->play.end_track=cd->info->tracks;
+      cd_resetpl(cd);
+      cd->status=cd_getStatus(cd,0,1);
+      switch (cd_cur(cd,mode))
+	{
+	case CDM_PLAY:
+	  cd->info.play.last_action=CDA_PLAY;
+	  break;
+	case CDM_PAUSE:
+	  cd->info.play.last_action=CDA_PAUSE;
+	  break;
+	case CDM_STOP:
+	  cd->info.play.last_action=CDA_STOP;
+	  break;
+	case CDM_COMP:
+	case CDM_EJECT:
+	  cd->info.play.last_action=CDA_NONE;
+	  break;
+	}
+      start=cd->info.play.cur_track=cd_findtrack(cd,cd_cur(cd,track));
+
+      /* do play list optimization:
+       * find the longest possible track sequence without jumps
+       */
+      for (track=cd_list(cd,track)[start].num, end=start+1;
+	   end<cd_list(cd,tracks) && track==cd_list(cd,track)[end].num-1;
+	   track=cd_list(cd,track)[end].num, end++);
+      end--;
+
+      cd->info.play.cur_end=end;
+      cd->info.play.repeat_mode=CDR_NONE;
+      cd->info.play.play_type=CDP_NORMAL;
     }
   else
     {
+      cd_freeinfo(cd);
       cd->status=-1;
-      cd->numcd=0;
       close(cd->fd);
       cd->fd=-1;
     }
@@ -311,8 +336,10 @@ int cd_reopen(CD *cd)
   return 0;
 }
 
+static struct timeval last_upd={0,0};
+
 /*
- * cd_status(cd,reopen)
+ * cd_getStatus(cd,reopen,force)
  *
  * Return values:
  *  -1 error
@@ -322,12 +349,15 @@ int cd_reopen(CD *cd)
  *
  * Updates the CDPosition struct of the cd.
  * If reopen is not 0, the device is automatically reopened if needed.
+ * This will query the cdrom only one time within 1/2 second to reduce
+ * overhead. Force will overide this behaviour.
  */
-int cd_getStatus(CD *cd, int reopen)
+int cd_getStatus(CD *cd, int reopen, int force)
 {
   struct cdrom_subchnl sc;
-  int                  ret=1, newcd=0;
+  int                  ret=1, newcd=0, im_stop=0;
   CDPosition           *cur;
+  struct timeval       now;
 
   if (cd==NULL)
     return -1;
@@ -344,96 +374,175 @@ int cd_getStatus(CD *cd, int reopen)
       newcd=1;
     }
 
-  if (cd->info==NULL)
+  gettimeofday(&now,NULL);
+  if (force
+      || ((now.tv_sec-last_upd.tv_sec)*1000000L+(now.tv_usec-last_upd.tv_usec))>500000L)
     {
-      cd->status=0;
-      return 0;
+      cur=&cd->info.current;
+      
+      sc.cdsc_format=CDROM_MSF;
+      
+      if (ioctl(cd->fd, CDROMSUBCHNL, &sc))
+	{
+	  memset(cur,0xff,sizeof(CDPosition));
+	  cur->mode=CDM_EJECT;
+	  cd->status=0;
+	  return 0;
+	}
+
+      /* only set update time if ioctl was successful */
+      last_upd=now;
+
+      if (newcd)
+	{
+	  memset(cur,0xff,sizeof(CDPosition));
+	  cur->mode=CDM_STOP;
+	  ret=2;
+	}
+      
+      switch (sc.cdsc_audiostatus)
+	{
+	case CDROM_AUDIO_PLAY:
+	  cur->mode=CDM_PLAY;
+	  
+	setpos:
+	  cur->track=cd_findtrack(cd,sc.cdsc_trk);
+	  
+	  msftoMSF(cur->relmsf,sc.cdsc_reladdr.msf);
+	  msftoMSF(cur->absmsf,sc.cdsc_absaddr.msf);
+	  
+	  break;
+	  
+	case CDROM_AUDIO_PAUSED:
+	  if (cd_play(cd,last_action)!=CDA_STOP)
+	    {
+	      cur->mode=CDM_PAUSE;
+	      goto setpos;
+	    }
+	  memset(cur,0xff,sizeof(CDPosition));
+	  cur->mode=CDM_STOP;
+	  break;
+	  
+	case CDROM_AUDIO_COMPLETED:
+	  cur->mode=CDM_COMP;
+	  break;
+	  
+	case CDROM_AUDIO_NO_STATUS:
+	case CDROM_AUDIO_INVALID: /* my TOSHIBA CD-ROM XM-5602B wants this */
+	  memset(cur,0xff,sizeof(CDPosition));
+	  cur->mode=CDM_STOP;
+	  break;
+	}
+      cd->status=ret;
+      
+      /*
+	if (ret>0 && cur->track>cd_info(cd,tracks) && cur->mode!=CDM_EJECT)
+	{
+	cd_doStop(cd);
+	im_stop=1;
+	}
+      */
+      
+      switch (cd_play(cd,repeat_mode))
+	{
+	case CDR_NONE:
+	  if ((cd_play(cd,last_action)==CDA_PLAY && cur->mode!=CDM_PLAY)
+	      /* this means: the user wants the cdrom to play,
+	       * but the cdrom does not play */
+	      || cur->mode==CDM_COMP || im_stop)
+	    {
+#ifdef DEBUG
+	      fprintf(stderr,"cd_getStatus[DEBUG]: switching to next track\n");
+#endif
+	      cd_play(cd,cur_track)=cd_play(cd,cur_end)+1;
+	      if (cd_play(cd,cur_track)<cd_list(cd,tracks))
+		cd_doPlay(cd,cd_play(cd,cur_track));
+	      else
+		cd_doStop(cd);
+	    }
+	  break;
+	case CDR_ALL:
+	  if ((cd_play(cd,last_action)==CDA_PLAY && cur->mode!=CDM_PLAY)
+	      || cur->mode==CDM_COMP || im_stop)
+	    {
+	      cd_play(cd,cur_track)++;
+	      if (cd_play(cd,cur_track)>=cd_list(cd,tracks))
+		{
+#ifdef DEBUG
+		  fprintf(stderr,"cd_getStatus[DEBUG]: repeating list\n");
+#endif
+		  if (cd_play(cd,play_type)==CDP_RANDOM)
+		    cd_randomize(cd);
+		  cd_doPlay(cd,0);
+		}
+	      else
+		{
+#ifdef DEBUG
+		  fprintf(stderr,"cd_getStatus[DEBUG]: switching to next track\n");
+#endif
+		  cd_doPlay(cd,cd_play(cd,cur_track));
+		}
+	    }
+	  break;
+	case CDR_ONE:
+	  if ((cd_play(cd,last_action)==CDA_PLAY && cur->mode!=CDM_PLAY)
+	      || cur->mode==CDM_COMP || im_stop)
+	    {
+#ifdef DEBUG
+	      fprintf(stderr,"cd_getStatus[DEBUG]: repeating track\n");
+#endif
+	      cd_doPlay(cd,cd_play(cd,cur_track));
+	    }
+	  break;
+	}
     }
 
-  cur=&cd->info->current;
-
-  sc.cdsc_format=CDROM_MSF;
-
-  if (ioctl(cd->fd, CDROMSUBCHNL, &sc))
-    {
-      memset(cur,0xff,sizeof(CDPosition));
-      cur->mode=CDM_EJECT;
-      cd->status=0;
-      return 0;
-    }
-
-  if (newcd)
-    {
-      memset(cur,0xff,sizeof(CDPosition));
-      cur->mode=CDM_STOP;
-      ret=2;
-    }
-
-  switch (sc.cdsc_audiostatus)
-    {
-    case CDROM_AUDIO_PLAY:
-      cur->mode=CDM_PLAY;
-
-    setpos:
-      cur->track=sc.cdsc_trk;
-      cur->index=sc.cdsc_ind;
-
-      msftoMSF(cur->relmsf,sc.cdsc_reladdr.msf);
-      msftoMSF(cur->absmsf,sc.cdsc_absaddr.msf);
-
-      break;
-
-    case CDROM_AUDIO_PAUSED:
-      cur->mode=CDM_PAUSE;
-      goto setpos;
-
-    case CDROM_AUDIO_COMPLETED:
-      cur->mode=CDM_COMP;
-      break;
-
-    case CDROM_AUDIO_NO_STATUS:
-      memset(cur,0xff,sizeof(CDPosition));
-      cur->mode=CDM_STOP;
-      break;
-    }
-  cd->status=ret;
   return ret;
 }
 
 /*
- * cd_doPlay(cd,start,end);
+ * cd_doPlay(cd,start);
  *
  * start playing the cd. cd must be opened. play starts at track start goes
  * until end of track end.
- * 1 is the first track of the cd.
+ * 0 is the first track of the play list.
  */
-int cd_doPlay(CD *cd, int start, int end)
+int cd_doPlay(CD *cd, int start)
 {
-  if (cd==NULL || cd->fd<0 || cd->info==NULL)
+  int end, track;
+
+  if (cd==NULL || cd->fd<0)
     return 1;
-  if (start>end)
-    {
-      int d=end;
-      end=start;
-      start=d;
-    }
-  start-=cd->info->start;
-  if (start<0) start=0;
-  if (end>cd->info->tracks) end=cd->info->tracks; /* LEADOUT */
+  if (start<0)
+    start=0;
+  if (start>=cd->info.list.tracks)
+    start=cd->info.list.tracks-1;
+
+  /* do play list optimization:
+   * find the longest possible track sequence without jumps
+   */
+  for (track=cd_list(cd,track)[start].num, end=start+1;
+       end<cd_list(cd,tracks) && track==cd_list(cd,track)[end].num-1;
+       track=cd_list(cd,track)[end].num, end++);
+  end--;
+
 #ifdef DEBUG
-  fprintf(stderr,"cd_doPlay[DEBUG]: play from [%d]%d:%d:%d to [%d]%d:%d:%d\n",
+  fprintf(stderr,"cd_doPlay[DEBUG]: play from [%d]%02d:%02d:%02d to end of [%d]%02d:%02d:%02d\n",
 	  start,
-	  cd->info->track[start].toc.minute,
-	  cd->info->track[start].toc.second,
-	  cd->info->track[start].toc.frame,
+	  cd->info.list.track[start].start.minute,
+	  cd->info.list.track[start].start.second,
+	  cd->info.list.track[start].start.frame,
 	  end,
-	  cd->info->track[end].toc.minute,
-	  cd->info->track[end].toc.second,
-	  cd->info->track[end].toc.frame);
+	  cd->info.list.track[end].end.minute,
+	  cd->info.list.track[end].end.second,
+	  cd->info.list.track[end].end.frame);
 #endif
-  cd->info->play.start_track=start+cd->info->start;
-  cd->info->play.end_track=end;
-  return cd_playMSF(cd,cd->info->track[start].toc,cd->info->track[end].toc);
+  cd->info.play.last_action=CDA_PLAY;
+  cd->info.play.cur_track=start;
+  cd->info.play.cur_end=end;
+  return cd_playMSF(cd,
+		    cd->info.list.track[start].start,
+		    cd->info.list.track[end].end);
 }
 
 /*
@@ -444,23 +553,25 @@ int cd_doPlay(CD *cd, int start, int end)
  */
 int cd_doPause(CD *cd)
 {
-  if (cd==NULL || cd->fd<0 || cd->info==NULL)
+  if (cd==NULL || cd->fd<0)
     return 1;
 
-  switch (cd->info->current.mode) {
+  switch (cd->info.current.mode) {
   case CDM_PLAY:
-    cd->info->current.mode=CDM_PAUSE;
+    cd->info.current.mode=CDM_PAUSE;
 #ifdef DEBUG
     fprintf(stderr,"cd_doPause[DEBUG]: pausing cdrom\n");
 #endif
     ioctl(cd->fd, CDROMPAUSE);
+    cd->info.play.last_action=CDA_PAUSE;
     break;
   case CDM_PAUSE:
-    cd->info->current.mode=CDM_PLAY;
+    cd->info.current.mode=CDM_PLAY;
 #ifdef DEBUG
     fprintf(stderr,"cd_doPause[DEBUG]: resuming cdrom\n");
 #endif
     ioctl(cd->fd, CDROMRESUME);
+    cd->info.play.last_action=CDA_PLAY;
     break;
 #ifdef DEBUG
   default:
@@ -477,11 +588,14 @@ int cd_doPause(CD *cd)
  */
 int cd_doStop(CD *cd)
 {
-  if (cd==NULL || cd->fd<0 || cd->info==NULL)
+  if (cd==NULL || cd->fd<0)
     return 1;
 
-  if (cd->info->current.mode!=CDM_STOP)
+  if (cd->info.current.mode!=CDM_STOP)
     {
+      /* olis cdrom needs this */
+      if (cd->info.current.mode==CDM_PLAY)
+	cd_doPause(cd);
 #ifdef DEBUG
       fprintf(stderr,"cd_doStop[DEBUG]: stopping cdrom\n");
 #endif
@@ -490,12 +604,13 @@ int cd_doStop(CD *cd)
 	  perror("cd_doStop[CDROMSTOP]");
 	  return 1;
 	}
-      if (cd->info->current.track>=cd->info->tracks)
-	cd->info->play.start_track=cd->info->start;
+      cd->info.play.last_action=CDA_STOP;
+      if (cd->info.current.track>=cd->info.list.tracks)
+	cd->info.play.cur_track=0;
       else
-	cd->info->play.start_track=cd->info->current.track;
-      memset(&cd->info->current,0xff,sizeof(CDPosition));
-      cd->info->current.mode=CDM_STOP;
+	cd->info.play.cur_track=cd->info.current.track;
+      memset(&cd->info.current,0xff,sizeof(CDPosition));
+      cd->info.current.mode=CDM_STOP;
     }
   return 0;
 }
@@ -509,24 +624,24 @@ int cd_doStop(CD *cd)
  */
 int cd_doEject(CD *cd)
 {
-  struct stat	stbuf;
-  struct ustat	ust;
+  struct statfs ust;
 
-  if (cd==NULL || cd->fd<0 || cd->info==NULL)
-    return 0;
-  if (cd->info->current.mode==CDM_EJECT)
+  if (cd==NULL)
     return 0;
 
-  if (fstat(cd->fd, &stbuf) != 0)
+  if (cd->fd<0) /* reopen a closed device */ 
     {
-      perror("cd_doEject[fstat]");
-      return 1;
+      if ((cd->fd=open(cd->device,0))<0)
+      {
+	perror("cd_doEject[(re)open]");
+	return 1;
+      }
     }
 
-  /* check for mounted filesystem */
-  if (ustat(stbuf.st_rdev, &ust)==0)
+  if (statfs(cd->device, &ust))
     {
-      perror("cd_doEject[mounted]");
+      perror("cd_doEject[is_mounted]");
+      cd_suspend(cd);
       return 2;
     }
 
@@ -534,12 +649,14 @@ int cd_doEject(CD *cd)
   fprintf(stderr,"cd_doEject[DEBUG]: stopping cdrom\n");
 #endif
   ioctl(cd->fd, CDROMSTOP);
+  cd->info.play.last_action=CDA_STOP;
 #ifdef DEBUG
   fprintf(stderr,"cd_doEject[DEBUG]: ejecting cdrom\n");
 #endif
   if (ioctl(cd->fd, CDROMEJECT))
     {
       perror("cd_doEject[CDROMEJECT]");
+      cd_suspend(cd);
       return 1;
     }
 
@@ -557,35 +674,34 @@ int cd_doSkip(CD *cd, int secs)
 {
   MSF start, end;
 
-  if (cd==NULL || cd->fd<0 || cd->info==NULL)
+  if (cd==NULL || cd->fd<0)
     return 1;
 
-  end=cd->info->track[cd->info->tracks].toc;
-  start=cd->info->current.absmsf;
+  end=cd_list(cd,track)[cd_play(cd,cur_end)].end;
+  start=cd->info.current.absmsf;
   start.second+=secs;
+  start=normMSF(start);
 #ifdef DEBUG
   fprintf(stderr,"cd_doSkip[DEBUG]: skipping %d seconds\n",secs);
 #endif
-  while (start.second>59)
+  if (cmpMSF(start,cd->info.list.track[0].start)<0)
     {
-      start.second-=60;
-      start.minute++;
-    }
-  while (start.second<0)
-    {
-      start.second+=60;
-      start.minute--;
-    }
-  if (cmpMSF(start,cd->info->track[0].toc)<0)
-    {
-      start=cd->info->track[0].toc;
+      start=cd->info.list.track[0].start;
 #ifdef DEBUG
       fprintf(stderr,"cd_doSkip[DEBUG]: can't skip before first track\n");
 #endif
     }
 
+  if (cmpMSF(start,end)>0)
+    {
 #ifdef DEBUG
-  fprintf(stderr,"cd_doSkip[DEBUG]: play from %d:%d:%d to %d:%d:%d\n",
+      fprintf(stderr,"cd_doSkip[DEBUG]: at end of track ... waiting\n");
+      return 0;
+#endif
+    }
+
+#ifdef DEBUG
+  fprintf(stderr,"cd_doSkip[DEBUG]: play from %02d:%02d:%02d to %02d:%02d:%02d\n",
 	  start.minute, start.second, start.frame,
 	  end.minute, end.second, end.frame);
 #endif
@@ -618,286 +734,314 @@ MSF subMSF(MSF a, MSF b)
   c.minute=a.minute-b.minute;
   c.second=a.second-b.second;
   c.frame =a.frame -b.frame;
-  while (c.frame<0) {c.frame+=75; c.second--;}
-  while (c.second<0) {c.second+=60; c.minute--;}
-  if (c.minute<0) c.minute=0;
-  return c;
-}
-
-#ifdef 0
-#ifdef BOZO /* this seems to be sun/dec stuff */
-/*
- * The minimum volume setting for the Sun and DEC CD-ROMs is 128 but for other
- * machines this might not be the case.
- */
-int	min_volume = 128;
-int	max_volume = 255;
-
-/*
- * scale_volume(vol, max)
- *
- * Return a volume value suitable for passing to the CD-ROM drive.  "vol"
- * is a volume slider setting; "max" is the slider's maximum value.
- *
- * On Sun and DEC CD-ROM drives, the amount of sound coming out the jack
- * increases much faster toward the top end of the volume scale than it
- * does at the bottom.  To make up for this, we make the volume scale look
- * sort of logarithmic (actually an upside-down inverse square curve) so
- * that the volume value passed to the drive changes less and less as you
- * approach the maximum slider setting.  The actual formula looks like
- *
- *     (max^2 - (max - vol)^2) * (max_volume - min_volume)
- * v = --------------------------------------------------- + min_volume
- *                           max^2
- *
- * If your system's volume settings aren't broken in this way, something
- * like the following should work:
- *
- *	return ((vol * (max_volume - min_volume)) / max + min_volume);
- */
-scale_volume(vol, max)
-     int	vol, max;
-{
-  return ((max * max - (max - vol) * (max - vol)) *
-	  (max_volume - min_volume) / (max * max) + min_volume);
+  return normMSF(c);
 }
 
 /*
- * unscale_volume(cd_vol, max)
+ * addMSF(a,b)
  *
- * Given a value between min_volume and max_volume, return the volume slider
- * value needed to achieve that value.
- *
- * Rather than perform floating-point calculations to reverse the above
- * formula, we simply do a binary search of scale_volume()'s return values.
+ * add a to b
  */
-unscale_volume(cd_vol, max)
-     int	cd_vol, max;
+MSF addMSF(MSF a, MSF b)
 {
-  int	vol, incr, scaled;
+  MSF c;
+  c.minute=a.minute+b.minute;
+  c.second=a.second+b.second;
+  c.frame =a.frame +b.frame;
+  return normMSF(c);
+}
 
-  for (vol = max / 2, incr = max / 4 + 1; incr; incr /= 2)
+/*
+ * normMSF(msf)
+ *
+ * normalize msf to limits
+ */
+MSF normMSF(MSF msf)
+{
+  while (msf.frame<0) {msf.frame+=FRAMES; msf.second--;}
+  while (msf.second<0) {msf.second+=SECONDS; msf.minute--;}
+  if (msf.minute<0) msf.minute=0;
+  while (msf.frame>FRAMES) {msf.frame-=FRAMES; msf.second++;}
+  while (msf.second>SECONDS) {msf.second-=SECONDS; msf.minute++;}
+  return msf;
+}
+
+/*
+ * cd_resetpl(cd,all)
+ *
+ * reset the play list to all non-data tracks (or all tracks if all is true)
+ */
+int cd_resetpl(CD *cd)
+{
+  int i;
+
+  if (cd==NULL)
+    return 1;
+
+  if (cd->info.list.track)
+    free(cd->info.list.track);
+
+  cd->info.list.tracks=0;
+  MSFzero(cd->info.list.length);
+  
+  if (cd->info.tracks==0)
+    return 0;
+
+  cd->info.list.track=(TrackInfo *)malloc(cd->info.tracks*sizeof(TrackInfo));
+  if (cd->info.list.track==NULL)
     {
-      scaled = scale_volume(vol, max);
-      if (cd_vol == scaled)
-	break;
-      if (cd_vol < scaled)
-	vol -= incr;
-      else
-	vol += incr;
+      perror("cd_resetpl[malloc]");
+      return 1;
     }
 
-  if (vol < 0)
-    vol = 0;
-  else if (vol > max)
-    vol = max;
-
-  return (vol);
-}
-
-/*
- * cd_volume(vol, bal, max)
- *
- * Set the volume levels.  "vol" and "bal" are the volume and balance knob
- * settings, respectively.  "max" is the maximum value of the volume knob
- * (the balance knob is assumed to always go from 0 to 20.)
- */
-void
-cd_volume(vol, bal, max)
-     int	vol, bal, max;
-{
-  int	left, right;
-  struct cdrom_volctrl v;
-
-  /*
-   * Set "left" and "right" to volume-slider values accounting for the
-   * balance setting.
-   *
-   * XXX - the maximum volume setting is assumed to be in the 20-30 range.
-   */
-  if (bal < 9)
-    right = vol - (9 - bal) * 2;
-  else
-    right = vol;
-  if (bal > 11)
-    left = vol - (bal - 11) * 2;
-  else
-    left = vol;
-
-  /* Adjust the volume to make up for the CD-ROM drive's weirdness. */
-  left = scale_volume(left, max);
-  right = scale_volume(right, max);
-
-  v.channel0 = left < 0 ? 0 : left > 255 ? 255 : left;
-  v.channel1 = right < 0 ? 0 : right > 255 ? 255 : right;
-  if (cd_fd >= 0)
-    (void) ioctl(cd_fd, CDROMVOLCTRL, &v);
-}
-
-/*
- * Set the offset into the current track and play.  -1 means end of track
- * (i.e., go to next track.)
- */
-void
-play_from_pos(pos)
-     int	pos;
-{
-  if (pos == -1)
-    if (cd)
-      pos = cd->trk[cur_track - 1].length - 1;
-  if (cur_cdmode == 1)
-    play_cd(cur_track, pos, playlist[cur_listno-1].end);
-}
-
-/* Try to keep the CD open all the time.  This is run in a subprocess. */
-void
-keep_cd_open()
-{
-  int	fd;
-  struct flock	fl;
-  extern	end;
-
-  for (fd = 0; fd < 256; fd++)
-    close(fd);
-
-  if (fork())
-    exit(0);
-
-  if ((fd = open("/tmp/cd.lock", O_RDWR | O_CREAT, 0666)) < 0)
-    exit(0);
-  fl.l_type = F_WRLCK;
-  fl.l_whence = 0;
-  fl.l_start = 0;
-  fl.l_len = 0;
-  if (fcntl(fd, F_SETLK, &fl) < 0)
-    exit(0);
-
-  if (open(cd_device, 0) >= 0)
-    {
-      brk(&end);
-      pause();
-    }
-
-  exit(0);
-}
-
-/*
- * find_trkind(track, index)
- *
- * Start playing at a particular track and index, optionally using a particular
- * frame as a starting position.  Returns a frame number near the start of the
- * index mark if successful, 0 if the track/index didn't exist.
- *
- * This is made significantly more tedious (though probably easier to port)
- * by the fact that CDROMPLAYTRKIND doesn't work as advertised.  The routine
- * does a binary search of the track, terminating when the interval gets to
- * around 10 frames or when the next track is encountered, at which point
- * it's a fair bet the index in question doesn't exist.
- */
-find_trkind(track, index, start)
-     int	track, index, start;
-{
-  int	top = 0, bottom, current, interval, ret = 0, i;
-
-  if (cd == NULL || cd_fd < 0)
-    return;
-
-  for (i = 0; i < cur_ntracks; i++)
-    if (cd->trk[i].track == track)
-      break;
-  bottom = cd->trk[i].start;
-
-  for (; i < cur_ntracks; i++)
-    if (cd->trk[i].track > track)
-      break;
-
-  top = i == cur_ntracks ? (cd->length - 1) * CD_FRAMES : cd->trk[i].start;
-
-  if (start > bottom && start < top)
-    bottom = start;
-
-  current = (top + bottom) / 2;
-  interval = (top - bottom) / 4;
-
-  do {
-    play_chunk(current, current + CD_FRAMES);
-
-    if (cd_status() != 1)
-      return (0);
-    while (cur_frame < current)
-      if (cd_status() != 1 || cur_cdmode != 1)
-	return (0);
-      else
-	susleep(1);
-
-    if (cd->trk[cur_track - 1].track > track)
-      break;
-
-    if (cur_index >= index)
+  cd->info.list.allocated=cd->info.tracks;
+  for (i=0; i<cd->info.tracks; i++)
+    if (!cd->info.track[i].data)
       {
-	ret = current;
-	current -= interval;
+	cd->info.list.track[cd->info.list.tracks++]=cd->info.track[i];
+	cd->info.list.length=addMSF(cd->info.list.length,
+				    cd->info.list.track[cd->info.list.tracks-1].length);
       }
-    else
-      current += interval;
-    interval /= 2;
-  } while (interval > 2);
 
-  return (ret);
-}
+  cd_play(cd,play_type)=CDP_NORMAL;
 
-/*
- * Simulate usleep() using select().
- */
-susleep(usec)
-     int	usec;
-{
-  struct timeval	tv;
-
-  timerclear(&tv);
-  tv.tv_sec = usec / 1000000;
-  tv.tv_usec = usec % 1000000;
-  return (select(0, NULL, NULL, NULL, &tv));
-}
-/*
- * Read the initial volume from the drive, if available.  Set cur_balance to
- * the balance level (0-20, 10=centered) and return the proper setting for
- * the volume knob.
- *
- * "max" is the maximum value of the volume knob.
- */
-read_initial_volume(max)
-     int max;
-{
-  int	left, right;
-
-  /* Suns can't read the volume; oh well */
-  left = right = 255;
-
-  left = unscale_volume(left, max);
-  right = unscale_volume(right, max);
-
-  if (left < right)
-    {
-      cur_balance = (right - left) / 2 + 11;
-      if (cur_balance > 20)
-	cur_balance = 20;
-
-      return (right);
-    }
-  else if (left == right)
-    {
-      cur_balance = 10;
-      return (left);
-    }
-  else
-    {
-      cur_balance = (right - left) / 2 + 9;
-      if (cur_balance < 0)
-	cur_balance = 0;
-
-      return (left);
-    }
-}
-#endif /* BOZO */
+#ifdef DEBUG
+  fprintf(stderr,"cd_resetpl[DEBUG]: cd playlist reseted\n");
 #endif
+
+  return 0;
+}
+
+/*
+ * cd_findtrack(cd,number)
+ *
+ * find the track with number in the play list and return it's index
+ * returns -1 if not found
+ */
+int cd_findtrack(CD *cd, int num)
+{
+  int i;
+  
+  if (cd==NULL || cd->info.track==NULL)
+    return -1;
+
+  for (i=0; i<cd->info.list.tracks; i++)
+    if (cd->info.list.track[i].num==num)
+      return i;
+
+  return -1;
+}
+
+/*
+ * cd_randomize(cd)
+ *
+ * create a random, non-repeating play list from all non-data tracks
+ */
+int cd_randomize(CD *cd)
+{
+  int i, *wech, r, j;
+
+  if (cd==NULL)
+    return 1;
+
+  if (cd->info.list.track)
+    free(cd->info.list.track);
+
+  cd->info.list.tracks=0;
+  MSFzero(cd->info.list.length);
+  
+  if (cd->info.tracks==0)
+    return 0;
+
+  cd->info.list.track=(TrackInfo *)malloc(cd->info.tracks*sizeof(TrackInfo));
+  if (cd->info.list.track==NULL)
+    {
+      perror("cd_randomize[malloc]");
+      return 1;
+    }
+
+  wech=(int *)malloc(sizeof(int)*cd->info.tracks);
+  if (wech==NULL)
+    {
+      perror("cd_randomize[tmp-malloc]");
+      free(wech);
+      return 1;
+    }
+
+  r=cd->info.tracks;
+  for (i=0; i<cd->info.tracks; i++)
+    {
+      if (!cd->info.track[i].data)
+	wech[i]=0;
+      else
+	{
+	  wech[i]=1;
+	  r--;
+	}
+    }
+  
+
+  while (r)
+    {
+      i=random()%r;
+      for (j=0; j<cd->info.tracks; j++)
+	{
+	  if (i)
+	    i--;
+	  else if (!i && !wech[j])
+	    {
+	      cd->info.list.track[cd->info.list.tracks++]=cd->info.track[j];
+	      cd->info.list.length=addMSF(cd->info.list.length,
+					  cd->info.list.track[cd->info.list.tracks-1].length);
+	      wech[j]++;
+	      r--;
+	      break;
+	    }
+	}
+    }
+
+  cd_play(cd,play_type)=CDP_RANDOM;
+
+#ifdef DEBUG
+  fprintf(stderr,"cd_randomize[DEBUG]: cd playlist randomized\n");
+#endif
+
+  return 0;
+}
+
+/*
+ * cd_setpl(cd,list)
+ *
+ * set the playlist of cd to list
+ */
+int cd_setpl(CD *cd, CDPlayList *list)
+{
+  if (cd==NULL || list==NULL)
+    return 1;
+
+  if (cd->info.list.track!=NULL)
+    free(cd->info.list.track);
+
+  cd->info.list.track=(TrackInfo *)malloc(list->allocated*sizeof(TrackInfo));
+  if (cd->info.list.track==NULL)
+    {
+      perror("cd_setpl[malloc]");
+      return 2;
+    }
+
+  cd->info.list.length=list->length;
+  cd->info.list.allocated=list->allocated;
+  cd->info.list.tracks=list->tracks;
+  memcpy(cd->info.list.track,list->track,list->allocated*sizeof(TrackInfo));
+
+#ifdef DEBUG
+  fprintf(stderr,"cd_setpl[DEBUG]: cd playlist set to playlist 0x%08x\n",list);
+#endif
+
+  return 0;
+}
+
+/*
+ * cdpl_new()
+ *
+ * create a new empty playlist structure
+ */
+CDPlayList *cdpl_new()
+{
+  CDPlayList *new;
+
+  new=(CDPlayList *)malloc(sizeof(CDPlayList));
+  if (new==NULL)
+    {
+      perror("cdpl_new[malloc]");
+      return NULL;
+    }
+  memset(new,0,sizeof(CDPlayList));
+
+#ifdef DEBUG
+  fprintf(stderr,"cdpl_new[DEBUG]: new playlist created (0x%08x)\n",new);
+#endif
+
+  return new;
+}
+
+/*
+ * cdpl_free(list)
+ *
+ * free the memory occupied by a playlist
+ */
+int cdpl_free(CDPlayList *list)
+{
+  if (list)
+    {
+#ifdef DEBUG
+      fprintf(stderr,"cdpl_free[DEBUG]: free playlist 0x%08x\n",list);
+#endif
+      if (list->track)
+	free(list->track);
+      free(list);
+    }
+  return 0;
+}
+
+/*
+ * cdpl_add(cd,track)
+ *
+ * add track to list
+ */
+int cdpl_add(CDPlayList *list, CD *cd, int track)
+{
+  if (list==NULL || track>=cd->info.tracks || track<0)
+    return 1;
+
+  if (list->track==NULL)
+    {
+      list->track=(TrackInfo *)malloc(10*sizeof(TrackInfo));
+      list->allocated=10;
+      list->tracks=0;
+    }
+  else if (list->allocated==list->tracks)
+    {
+      TrackInfo *new;
+      list->allocated+=10;
+      new=realloc(list->track,list->allocated*sizeof(TrackInfo));
+      if (new==NULL)
+	{
+	  perror("cdpl_add[realloc]");
+	  return 2;
+	}
+      list->track=new;
+    }
+
+  list->track[list->tracks++]=cd->info.track[track];
+  list->length=addMSF(list->length,cd->info.track[track].length);
+
+#ifdef DEBUG
+  fprintf(stderr,"cdpl_add[DEBUG]: track %d added to playlist 0x%08x (size %d)\n",
+	  cd->info.track[track].num,list,list->tracks);
+#endif
+
+  return 0;
+}
+
+/*
+ * cdpl_reset(list)
+ *
+ * set the playlist to zero tracks
+ */
+int cdpl_reset(CDPlayList *list)
+{
+  if (list==NULL)
+    return 1;
+
+  if (list->track)
+    free(list->track);
+
+  memset(list,0,sizeof(CDPlayList));
+
+#ifdef DEBUG
+  fprintf(stderr,"cdpl_reset[DEBUG]: playlist 0x%08x reseted\n",list);
+#endif
+
+  return 0;
+}

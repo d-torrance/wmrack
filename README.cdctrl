@@ -1,8 +1,0 @@
-cdctrl is a test program for the cdrom.* stuff.
-
-You may compile it (if you want) using the follwing command:
-
-make -f Makefile.cdctrl
-
-Without the DEBUG and gdb stuff it also gives a useful command-line
-interface to your cdrom.

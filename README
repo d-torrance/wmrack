@@ -3,14 +3,14 @@
 
 		     The WindowMaker Sound Control Panel
 				      by
-	 Oliver Graf <ograf@fga.de> and Heiko Wagner <hwagner@fga.de>
+			  Oliver Graf <ograf@fga.de>
 
 
 DESCRIPTION:
 ------------
 WMRack is a Dock/Wharf applet which gives you complete control over
-your CDROM, the Mixer and hopfully in the future to other sound related
-stuff (fell free to send suggestions).
+your CDROM, the Mixer and hopefully in the future to other sound related
+stuff (feel free to send suggestions).
 
 It's main advantage is the high configurability, which will let you specify
 different looks for the window at startup.
@@ -23,39 +23,50 @@ CD-Functions:
 
 Mixer Functions:
  * startup options for initial volume
- * four volume displays at one time
- * switchable sources at run-time
-
+ * control all your mixer devices
+ * control balance
+ * change record sources
 
 INSTALLATION:
 -------------
-xmkmf
-(make depend -- if you want to)
-make
-make install
-make install.man
+First you need to configure the whole package with:
+
+./configure (see './configure --help' for options)
+
+Now you can make a link in XPM to the style you want compiled into
+WMRack using 'ln -s A.style standart.style' or do nothing for the
+default.
+
+After this a 'make' will compile WMRack and a 'make install' will
+install it.
 
 
 USAGE:
 ------
-Look into the manpage for supported options.
+Look into the manpage for supported options and functions.
+
+Easily swallowed by dock (use the --withdrawn option).
 
 Putting wmrack into AfterStep Wharf:
 *Wharf WMRack nil Swallow "wmrack" wmrack &
 
-Easily swallowed by dock (use the --withdrawn option).
-
 
 BUGS & CONTACT:
 ---------------
-  * send bug reports or suggestions to ograf@fga.de
-  * send new styles or style questions to hwagner@fga.de or ograf@fga.de
+Please send bug reports or suggestions to ograf@fga.de. Include
+a description how the bug can be reproduced plus the vendor and
+model of your cdrom and/or soundcard. Also include a debug log
+(configure with --with-debug -- this is the default for beta
+versions) created with your bug-reproduction-recipe.
+
+Send new styles or style questions to ograf@fga.de
+
 
 HISTORY:
 --------
-Basically this thing borrows much from WorkBone, ascd and asmixer. But in
+Basically this thing borrowed much from WorkBone, ascd and asmixer. But in
 the progress of work, almost any part that was stolen, has been rewritten,
 restructured, and overworked.
 
 -----
-$Id: README,v 1.4 1997/06/12 17:03:53 ograf Exp $
+$Id: README,v 1.8 1997/10/21 15:42:10 ograf Exp $

@@ -1,13 +1,17 @@
 Source: wmrack
-Section: x11
+Section: sound
 Priority: optional
-Maintainer: Marcelo E. Magallon <mmagallo@debian.org>
+Maintainer: Sean E. Perry <shaleh@debian.org>
 Standards-Version: 2.4.0.0
 
 Package: wmrack
 Architecture: any
+Section: sound
+Priority: optional
 Depends: ${shlibs:Depends}
 Suggests: wmaker
-Description: A rack like program designed for WindowMaker
- There's nothing in the program that makes it requiere WindowMaker, except
- maybe the look.
+Description: A rack like program designed for Window Maker
+ wmrack is both a CD-player and a mixer.  Its look is very
+ customizable and uses very little screen realstate.  It's desinged
+ with Window Maker in mind, but there's nothing in the program that
+ makes it require a particular window manager.

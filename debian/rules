@@ -1,24 +1,26 @@
 #!/usr/bin/make -f
 
+#export DH_VERBOSE = 1
+
 package=wmrack
 
-SHELL=/bin/sh
+build: stamp-build
 
-export DH_VERBOSE = 1
-
-build: Makefile
+stamp-build: Makefile
 	dh_testdir
-	make
-	touch build
+	$(MAKE)
+	touch stamp-build
 
 Makefile: 
-	xmkmf
+	./configure --without-debug
 
 clean:
 	dh_testdir
 	dh_testroot
-	-make clean
-	-rm -f build Makefile
+	-$(MAKE) clean
+	-rm -f build Makefile XPM/standart.style cdctrl mixctrl wmrack \
+	  XPM/Makefile config.log config.h config.cache config.status \
+	  .depend
 	dh_clean
 
 binary-indep: build
@@ -27,31 +29,33 @@ binary-indep: build
 #	dh_clean -i -k
 
 binary-arch: build
-	dh_testdir -a
+	dh_testdir
 	dh_testroot
-	dh_clean -a -k
-	dh_installdirs -a
-	cp wmrack debian/tmp/usr/X11R6/bin
-	dh_installdocs -a
-	dh_installmenu -a
-	cp wmrack.man debian/tmp/usr/X11R6/man/man1/wmrack.1x
-	dh_installchangelogs -a
-	dh_strip -a
-	dh_compress -a
-	dh_fixperms -a
-	dh_installdeb -a
-	dh_shlibdeps -a
-	dh_gencontrol -a -u-isp #-DSection=x11 -u-DPriority=extra
-	dh_makeshlibs -a
-	dh_du -a
-	dh_md5sums -a
-	dh_builddeb -a
+	dh_clean -k
+	dh_installdirs
+	install -m 755 -s wmrack debian/tmp/usr/X11R6/bin
+	install -m 755 -s cdctrl debian/tmp/usr/X11R6/bin
+	install -m 755 -s mixctrl debian/tmp/usr/X11R6/bin
+	dh_installdocs
+	dh_installmenu
+	install -m 0644 wmrack.man debian/tmp/usr/X11R6/man/man1/wmrack.1x
+	dh_undocumented mixctrl.1x cdctrl.1x
+	dh_installchangelogs
+	dh_strip
+	dh_compress
+	dh_fixperms
+	dh_installdeb
+	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
 
 binary:	binary-indep binary-arch
 
-.PHONY: binary binary-arch binary-indep clean
+.PHONY: binary binary-arch binary-indep clean build
 
 # Local variables:
 # mode: makefile
 # mode: font-lock
 # End:
+

@@ -1,9 +1,11 @@
 /*
- * $Id: xpmicon.c,v 1.3 1997/06/12 16:27:28 ograf Exp $
+ * $Id: xpmicon.c,v 1.7 1997/10/18 14:39:20 ograf Exp $
  *
  * part of WMRack
  *
  * handles the whole pixmap stuff (styles)
+ *
+ * Copyright (c) 1997 by Oliver Graf <ograf@fga.de>
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,6 +15,7 @@
 #include <X11/xpm.h>
 #include <X11/extensions/shape.h>
 
+#include "library.h"
 #include "xpmicon.h"
 
 /* include the default xpms */
@@ -22,20 +25,23 @@
  * first some requires variables
  */
 XpmAttributes rackDefaultAttr;
-XpmIcon rackXpm[7]={{"cdnodisc",cdnodisc},
-		    {"cdstopped",cdstopped},
-		    {"cdplaying",cdplaying},
-		    {"cdpaused",cdpaused},
-		    {"mixer",NULL},
-		    {"cdled",cdled},
-		    {"mixled",NULL}};
+XpmIcon rackXpm[]={{"cdnodisc",cdnodisc},
+		   {"cdstopped",cdstopped},
+		   {"cdplaying",cdplaying},
+		   {"cdpaused",cdpaused},
+		   {"mixer",mixer},
+		   {"cdled",cdled},
+		   {"mixled",mixled},
+		   {"alphaled",alphaled}};
 
-int curRack=RACK_NODISC, curLed=RACK_LED_PLAYER;
+int curRack=RACK_NODISC;
 
 XpmColorSymbol LedColorSymbols[4]={{"led_color_back", "#000000000000", 0},
 				   {"led_color_high", "#0000FFFF0000", 0},
 				   {"led_color_med",  "#00009CE60000", 0},
 				   {"led_color_low",  "#000063180000", 0}};
+
+char *ledAlphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ";
 
 /*
  * some internal functions
@@ -134,7 +140,7 @@ int parseXpm(Display *disp, Drawable draw, char *buffer)
  * creates the attributes for xpm pixmap creation and sets
  * the led symbol colors to the specified color and 2 shades of it.
  */
-int xpm_setDefaultAttr(Display *disp, Drawable draw, char *color)
+int xpm_setDefaultAttr(Display *disp, Drawable draw, char *color, char *back)
 {
   rackDefaultAttr.valuemask=XpmReturnPixels | XpmReturnExtensions | XpmColorSymbols;
   rackDefaultAttr.numsymbols=4;
@@ -146,6 +152,11 @@ int xpm_setDefaultAttr(Display *disp, Drawable draw, char *color)
       LedColorSymbols[2].pixel=xpm_getDimColor(disp,draw,color,1.65);
       LedColorSymbols[3].value=NULL;
       LedColorSymbols[3].pixel=xpm_getDimColor(disp,draw,color,2.6);
+    }
+  if (back!=NULL)
+    {
+      LedColorSymbols[0].value=NULL;
+      LedColorSymbols[0].pixel=xpm_getDimColor(disp,draw,back,1);
     }
   rackDefaultAttr.colorsymbols=LedColorSymbols;
   return 0;
@@ -159,10 +170,22 @@ int xpm_setDefaultAttr(Display *disp, Drawable draw, char *color)
 int xpm_loadSet(Display *disp, Drawable draw, char *filename)
 {
   FILE *f;
-  char *buffer=NULL, line[4096];
+  char *buffer=NULL, line[4096], path[4096];
   int bufpos=0, bufalloc=0, i;
 
-  f=fopen(filename,"r");
+  buffer=lib_findfile(filename,1);
+  if (buffer==NULL)
+    {
+      fprintf(stderr,"xpm_loadSet: can't find file\n");
+      return 1;
+    }
+  strcpy(path,buffer);
+  buffer=NULL;
+#ifdef DEBUG
+  fprintf(stderr,"xpm_loadSet: loading %s\n",path);
+#endif
+
+  f=fopen(path,"r");
   if (f==NULL)
     {
       perror("xpm_loadSet");
@@ -256,7 +279,7 @@ int xpm_loadSet(Display *disp, Drawable draw, char *filename)
  */
 int xpm_setDefaultSet(Display *disp, Drawable draw, int num)
 {
-  int i, ret=0;
+  int i, ret=0, x;
 
   if (num==RACK_MAX)
     for (i=0; i<RACK_MAX; i++)
@@ -264,10 +287,15 @@ int xpm_setDefaultSet(Display *disp, Drawable draw, int num)
 	if (rackXpm[i].standart==NULL)
 	  continue;
 	rackXpm[i].attributes=rackDefaultAttr;
-	ret|=XpmCreatePixmapFromData(disp, draw, rackXpm[i].standart,
-				     &rackXpm[i].pixmap,
-				     &rackXpm[i].mask,
-				     &rackXpm[i].attributes)!=XpmSuccess;
+	x=XpmCreatePixmapFromData(disp, draw, rackXpm[i].standart,
+				  &rackXpm[i].pixmap,
+				  &rackXpm[i].mask,
+				  &rackXpm[i].attributes)!=XpmSuccess;
+	ret|=x;
+#ifdef DEBUG
+	if (x)
+	  fprintf(stderr,"xpm_setDefaultSet: failure to load %d (XpmErrNo %d)\n",i,x);
+#endif
       }
   else
     {
@@ -278,6 +306,10 @@ int xpm_setDefaultSet(Display *disp, Drawable draw, int num)
 				   &rackXpm[num].pixmap,
 				   &rackXpm[num].mask,
 				   &rackXpm[num].attributes)!=XpmSuccess;
+#ifdef DEBUG
+      if (ret)
+	fprintf(stderr,"xpm_setDefaultSet: failure to load %d (XpmErrNo %d)\n",i,x);
+#endif
     }
   return ret;
 }
