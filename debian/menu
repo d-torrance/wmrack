@@ -1,0 +1,6 @@
+?package(wmrack):\
+   needs="x11"\
+   icon="none"\
+   section="Apps/Sound"\
+   title="WMrack"\
+   command="/usr/X11R6/bin/wmrack -w"

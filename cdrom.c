@@ -17,6 +17,7 @@
 #include <sys/ioctl.h>
 #include <sys/param.h>
 #include <sys/stat.h>
+#include <sys/ustat.h>
 #include <sys/time.h>
 #include <fcntl.h>
 

@@ -1,0 +1,11 @@
+wmrack (0.9-1) unstable; urgency=low
+
+  * Initial release
+
+ -- Marcelo E. Magallon <mmagallo@debian.org>  Fri,  2 Jan 1998 14:00:10 -0600
+
+Local variables:
+mode: debian-changelog
+mode: auto-fill
+add-log-mailing-address: "mmagallo@debian.org"
+End:

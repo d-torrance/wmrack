@@ -1,0 +1,13 @@
+Source: wmrack
+Section: x11
+Priority: optional
+Maintainer: Marcelo E. Magallon <mmagallo@debian.org>
+Standards-Version: 2.4.0.0
+
+Package: wmrack
+Architecture: any
+Depends: ${shlibs:Depends}
+Suggests: wmaker
+Description: A rack like program designed for WindowMaker
+ There's nothing in the program that makes it requiere WindowMaker, except
+ maybe the look.
