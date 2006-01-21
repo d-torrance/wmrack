@@ -3,7 +3,7 @@ Section: sound
 Priority: optional
 Maintainer: Chris Waters <xtifr@debian.org>
 Standards-Version: 3.6.0
-Build-Depends: xlibs-dev, xutils, debhelper (>= 4.0.0)
+Build-Depends: libx11-dev, libxext-dev, libxpm-dev, xutils, debhelper (>= 4.0.0)
 
 Package: wmrack
 Architecture: any
