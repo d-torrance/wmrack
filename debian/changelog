@@ -1,3 +1,9 @@
+wmrack (1.4-2) unstable; urgency=low
+
+  * WTF workaround for glitch in make (&& -> ||).
+
+ -- Chris Waters <xtifr@debian.org>  Mon, 31 Mar 2008 16:27:06 -0700
+
 wmrack (1.4-1) unstable; urgency=low
 
   * New upstream release.  Includes fix for overfrequent polling

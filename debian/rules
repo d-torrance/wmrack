@@ -12,7 +12,7 @@ stamp-build:
 clean:
 	dh_testdir
 	dh_testroot
-	[ -f Makefile ] && $(MAKE) clean
+	[ ! -f Makefile ] || $(MAKE) clean
 	rm -rf build Makefile XPM/Makefile XPM/standart.style wmrack \
 	  config.log config.h config.cache config.status .depend stamp-build
 	dh_clean
