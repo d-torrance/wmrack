@@ -1,0 +1,17 @@
+Description: Add format argument to fprintf.
+ This patch avoids a "format not a string literal and no format arguments"
+ warning, which results in FTBFS with -Werror=format-security.
+Author: Doug Torrance <dtorrance@monmouthcollege.edu>
+Last-Update: 2014-08-10
+
+--- a/xpmicon.c
++++ b/xpmicon.c
+@@ -79,7 +79,7 @@
+   if (strncmp(buffer,"/* XPM */\nstatic char *",23)!=0)
+     {
+       fprintf(stderr,"parseXpm: invalid start of xpm\n");
+-      fprintf(stderr,buffer);
++      fprintf(stderr, "%s", buffer);
+       return 1;
+     }
+   /* skip spaces */
