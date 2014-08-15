@@ -10,7 +10,7 @@ Vcs-Git: https://github.com/d-torrance/wmrack.git
 
 Package: wmrack
 Architecture: any
-Depends: ${shlibs:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Suggests: wmaker
 Description: Combined CD Player + Mixer designed for WindowMaker
  This dockapp combines a CD player and a mixer in one 48x48 window.
