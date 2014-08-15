@@ -10,16 +10,26 @@ wmrack (1.4-3) UNRELEASED; urgency=medium
     - Move Homepage entry to source package section.
     - Add dh-autoreconf to Build-Depends.
     - Add Vcs-* fields.
+    - Add misc:Depends to Depends.
+  * debian/copyright
+    - Convert to machine-readable format version 1.0.
   * debian/patches/add_format_arg_to_fprintf.patch
     - Avoid FTBFS due to -Werror=security build flag.
+  * debian/patches/fix_hurd_ftbfs.patch
+    - Use sys/cdrom.h on the Hurd.  Thanks to Samuel Thibault
+      <sthibault@debian.org> (Closes: #647977).
   * debian/patches/fix_manpage.patch
     - Avoid Lintian manpage-related warnings.
   * debian/patches/update_autotools.patch
     - Update to work with modern autotools.
   * debian/rules
     - Simplify to use dh.
+    - Use --with autoreconf.
+    - Pass LDFLAGS via LIBS.
   * debian/source/format
     - New file; use 3.0 (quilt).
+  * debian/watch
+    - New file.
 
  -- Doug Torrance <dtorrance@monmouthcollege.edu>  Thu, 14 Aug 2014 21:27:09 -0500
 
@@ -32,38 +42,37 @@ wmrack (1.4-2) unstable; urgency=low
 wmrack (1.4-1) unstable; urgency=low
 
   * New upstream release.  Includes fix for overfrequent polling
-    (closes: #440407).
-  * Patch to fix FTBFS if built twice in a row (closes: #424123).
-  * Patch to permit building with nostrip option (closes: #438292).
-  * Updated menu for new menu policy.
+    (Closes: #440407).
+  * Patch to fix FTBFS if built twice in a row (Closes: #424123).
+  * Patch to permit building with nostrip option (Closes: #438292).
+  * Update menu for new menu policy.
 
  -- Chris Waters <xtifr@debian.org>  Sun, 30 Mar 2008 13:25:19 -0700
 
 wmrack (1.3-2) unstable; urgency=low
 
-  * changed build-dependency on xutils to libxt-dev because the configure
+  * Changed Build-Depends on xutils to libxt-dev because the configure
     script looks for a header in libxt-dev if it can't find xmkmf, and
     xmkmf has been moved to xutils-dev.  I could have changed to
-    build-depend on xutils-dev, of course, but this way allows backports
-    to sarge.  Thanks to Andreas Metzler for the suggestion. (Closes: #365126).
-  * At the advice of Aaron Ucko, I have patched configure (and
-    configure.in) to handle the case where X does not need additional
-    include or library paths.
+    Build-Depends to xutils-dev, of course, but this way allows backports
+    to sarge.  Thanks to Andreas Metzler for the suggestion (Closes: #365126).
+  * Patch configure (and configure.in) to handle the case where X does not need
+    additional include or library paths.  Thanks to Aaron Ucko.
 
  -- Chris Waters <xtifr@debian.org>  Sat, 29 Apr 2006 12:11:46 -0700
 
 wmrack (1.3-1) unstable; urgency=low
 
   * New upstream release, includes fix for FTBFS on BSD/Hurd
-    (closes: #361724).
-  * Updated FSF address in debian/copyright.
+    (Closes: #361724).
+  * Update FSF address in debian/copyright.
 
  -- Chris Waters <xtifr@debian.org>  Wed, 26 Apr 2006 15:26:54 -0700
 
 wmrack (1.2-1.1) unstable; urgency=low
 
-  * Non-maintainer upload
-  * Splitted xlibs-dev build-dep (Closes: #346898)
+  * Non-maintainer upload.
+  * Split xlibs-dev Build-Depends (Closes: #346898).
 
  -- Marc 'HE' Brockschmidt <he@debian.org>  Sat, 21 Jan 2006 10:37:15 +0100
 
@@ -75,9 +84,7 @@ wmrack (1.2-1) unstable; urgency=low
 
 wmrack (1.1-2) unstable; urgency=low
 
-  * added missing build-dependency on xutils (grr, this is one of the most
-    inobvious and annoying build-dependencies around---its only used by
-    one test in the configure script...sigh).
+  * Add xutils to Build-Depends.
 
  -- Chris Waters <xtifr@debian.org>  Mon, 30 Apr 2001 11:35:04 -0700
 
@@ -86,85 +93,85 @@ wmrack (1.1-1) unstable; urgency=low
   * New upstream release.  Note that I am now the upstream maintainer as
     well as the Debian maintainer.  All my debian-specific patches have
     now been merged into the upstream source (as you might expect).
-  * Removed the README.Debian, which was not at all wmrack related (except
+  * Remove the README.Debian, which was not at all wmrack related (except
     insofar as wmrack is one of many applications that use sound).
-  * Changed debian/copyright to mention new webpage and maintainer (me).
-  * Added hints and longtitle to menu.
-  * Cleaned up debian/rules, started using debhelper v3.
-  * Rewrote description.
-  
+  * Change debian/copyright to mention new webpage and maintainer.
+  * Add hints and longtitle to menu.
+  * Clean up debian/rules; start using debhelper v3.
+  * Rewrite description.
+
  -- Chris Waters <xtifr@debian.org>  Wed, 11 Apr 2001 16:07:58 -0700
 
 wmrack (1.0b5-8) unstable; urgency=low
 
-  * Changed device open call to use O_RDONLY|O_NONBLOCK in order to get
+  * Change device open call to use O_RDONLY|O_NONBLOCK in order to get
     CDs to work with new glibc.
-  * Updated Build-depends for new XF86-4
-  * Moved files from /usr/X11/bin to /usr/bin (as per new proposed
+  * Update Build-Depends for new XF86-4.
+  * Move files from /usr/X11/bin to /usr/bin (as per new proposed
     policy).
 
  -- Chris Waters <xtifr@debian.org>  Tue, 30 Jan 2001 13:45:14 -0800
 
 wmrack (1.0b5-7) unstable; urgency=low
 
-  * new maintainer
+  * New maintainer.
 
  -- Chris Waters <xtifr@debian.org>  Sat, 11 Nov 2000 14:47:18 -0800
 
 wmrack (1.0b5-6) unstable; urgency=low
 
-  * Orphaning the package
+  * Orphan package.
 
  -- Sean 'Shaleh' Perry <shaleh@debian.org>  Sun, 27 Aug 2000 22:58:51 -0700
 
 wmrack (1.0b5-5) unstable; urgency=low
 
-  * Bug fix release
-  * Closes: #52895
+  * Remove cdctrl binary (Closes: #52895).
 
  -- Sean 'Shaleh' Perry <shaleh@debian.org>  Tue, 18 Jul 2000 12:20:14 -0700
 
 wmrack (1.0b5-4) unstable; urgency=low
 
-  * Upload for fhs compliance
-  * Closes: #44538
+  * Upload for FHS compliance.
+  * Fix FTBFS on alpha (Closes: #44538).
 
  -- Sean E. Perry <shaleh@debian.org>  Tue,  7 Sep 1999 14:46:52 -0700
 
 wmrack (1.0b5-3) unstable; urgency=low
 
-  * New maintainer
+  * New maintainer.
 
  -- Sean E. Perry <shaleh@debian.org>  Fri,  3 Sep 1999 16:13:17 -0700
 
 wmrack (1.0b5-2) unstable; urgency=low
 
-  * debian/control: improved description (closes: bug#33399)
-  * debian/README.Debian: added note regarding audio devices (closes:
-    bug#31308)
-  * 1.0b5 added signal handling (closes: bug#29211, bug#31257)
+  * debian/control
+    - Improved description (Closes: #33399).
+  * debian/README.Debian
+    - Add note regarding audio devices (Closes: #31308).
 
  -- Marcelo E. Magallon <mmagallo@debian.org>  Sun, 13 Jun 1999 10:13:13 -0600
 
 wmrack (1.0b5-1) frozen unstable; urgency=low
 
-  * New upstream release
-  * Renamed source package back to wmrack
+  * New upstream release.
+    -  Add signal handling (Closes: #29211, #31257).
+  * Rename source package back to wmrack.
 
  -- Marcelo E. Magallon <mmagallo@debian.org>  Thu, 31 Dec 1998 18:38:40 -0600
 
 WMRack (1.0b3-1) unstable; urgency=low
 
-  * New upstream version
-  * Renaming source package from wmrack to WMRack, upstream's name
-  * Patched a bit to prevent wmrack to crash on startup if no
-    configuration file is found
+  * New upstream version.
+  * Rename source package from wmrack to WMRack, upstream's name.
+  * Patch to prevent wmrack from crashing on startup if no configuration file
+    is found.
 
  -- Marcelo E. Magallon <mmagallo@debian.org>  Sat, 11 Apr 1998 22:09:54 -0600
 
 wmrack (0.9-1) unstable; urgency=low
 
-  * Initial release
+  * Initial release.
 
  -- Marcelo E. Magallon <mmagallo@debian.org>  Fri,  2 Jan 1998 14:00:10 -0600
 
