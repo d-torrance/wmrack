@@ -1,44 +1,4 @@
 #!/usr/bin/make -f
 
-package=wmrack
-
-build: stamp-build
-stamp-build:
-	dh_testdir
-	./configure --without-debug
-	$(MAKE)
-	touch stamp-build
-
-clean:
-	dh_testdir
-	dh_testroot
-	[ ! -f Makefile ] || $(MAKE) clean
-	rm -rf build Makefile XPM/Makefile XPM/standart.style wmrack \
-	  config.log config.h config.cache config.status .depend stamp-build
-	dh_clean
-
-binary-indep: build
-
-
-binary-arch: build
-	dh_testdir
-	dh_testroot
-	dh_clean -k
-	dh_installdirs
-	install -m 755 wmrack debian/wmrack/usr/bin
-	dh_installdocs
-	dh_installmenu
-	dh_installman wmrack.1
-	dh_installchangelogs CHANGES
-	dh_strip
-	dh_compress
-	dh_fixperms
-	dh_installdeb
-	dh_shlibdeps
-	dh_gencontrol
-	dh_md5sums
-	dh_builddeb
-
-binary:	binary-indep binary-arch
-
-.PHONY: binary binary-arch binary-indep clean build
+%:
+	dh $@ --with autoreconf
