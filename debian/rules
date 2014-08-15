@@ -7,4 +7,5 @@ override_dh_auto_build:
 	dh_auto_build -- LIBS="$(LDFLAGS) -lX11 -lXpm -lXext"
 
 override_dh_auto_install:
-	dh_auto_install -- prefix=$(CURDIR)/debian/wmrack/usr
+	dh_auto_install -- prefix=$(CURDIR)/debian/wmrack/usr \
+		LIBDIR=$(CURDIR)/debian/wmrack/usr/share/wmrack
