@@ -1,19 +1,36 @@
-This package was originally debianized by Marcelo E. Magallon
-<mmagallo@efis.ucr.ac.cr> on Sun, 5 Mar 1998 22:42:00 -0600.
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: wmrack
+Upstream-Contact: Chris Waters <xtifr.w@gmail.com>
+Source: http://wmrack.sourceforge.net
 
-It was downloaded from http://prdownloads.sourceforge.net/wmrack/
+Files: *
+Copyright: 1997 Oliver Graf <ograf@fga.de>
+	   2001, 2003-2008 Chris Waters <xtifr.w@gmail.com>
+License: GPL-3+
 
-The original author (and current copyright holder) of WMRack is
-Oliver Graf, but he has lost interest, and the current maintainer
-is Chris Waters <xtifr@debian.org>, who is also the maintainer of
-the Debian package.
+Files: debian/*
+Copyright: 1998-1999 Marcelo E. Magallon <mmagallo@debian.org>
+	   1999-2000 Sean E. Perry <shaleh@debian.org>
+	   2000-2001, 2003, 2006, 2008 Chris Waters <xtifr.w@gmail.com>
+License: GPL-3+
 
-Copyright 2001, 2003 Oliver Graf
-Copyright 2003-2008 Oliver Graf and Chris Waters
-
-wmrack is distributed under the terms of the GNU Public License.
-
-You can find a copy of the GNU General Public License in the directory
-/usr/share/common-licenses, in the file GPL; if not, you can obtain a copy
-writing to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
-Boston, MA  02110-1301  USA
+License: GPL-3+
+ This program is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public
+ License as published by the Free Software Foundation; either
+ version 3 of the License, or (at your option) any later
+ version.
+ .
+ This program is distributed in the hope that it will be
+ useful, but WITHOUT ANY WARRANTY; without even the implied
+ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ PURPOSE.  See the GNU General Public License for more
+ details.
+ .
+ You should have received a copy of the GNU General Public
+ License along with this package; if not, see
+ <http://www.gnu.org/licenses/>.
+ .
+ On Debian systems, the full text of the GNU General Public
+ License version 3 can be found in the file
+ `/usr/share/common-licenses/GPL-3'.
