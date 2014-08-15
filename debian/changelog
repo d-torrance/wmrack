@@ -1,3 +1,28 @@
+wmrack (1.4-3) UNRELEASED; urgency=medium
+
+  * New maintainer (Closes: #664098).
+  * debian/compat
+    - Bump to 9.
+  * debian/control
+    - Bump Standards-Verison to 3.9.5, no changes required.
+    - Bump Build-Depends to debhelper (>=9).
+    - Remove redundant Sound and Priority entries from binary package section.
+    - Move Homepage entry to source package section.
+    - Add dh-autoreconf to Build-Depends.
+    - Add Vcs-* fields.
+  * debian/patches/add_format_arg_to_fprintf.patch
+    - Avoid FTBFS due to -Werror=security build flag.
+  * debian/patches/fix_manpage.patch
+    - Avoid Lintian manpage-related warnings.
+  * debian/patches/update_autotools.patch
+    - Update to work with modern autotools.
+  * debian/rules
+    - Simplify to use dh.
+  * debian/source/format
+    - New file; use 3.0 (quilt).
+
+ -- Doug Torrance <dtorrance@monmouthcollege.edu>  Thu, 14 Aug 2014 21:27:09 -0500
+
 wmrack (1.4-2) unstable; urgency=low
 
   * WTF workaround for glitch in make (&& -> ||).
