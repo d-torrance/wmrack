@@ -1,6 +1,8 @@
-wmrack (1.4-3) UNRELEASED; urgency=medium
+wmrack (1.4-3) unstable; urgency=medium
 
   * New maintainer (Closes: #664098).
+  * debian/clean
+    - New file; clean files changed by autoreconf.
   * debian/compat
     - Bump to 9.
   * debian/control
@@ -13,6 +15,8 @@ wmrack (1.4-3) UNRELEASED; urgency=medium
     - Add misc:Depends to Depends.
   * debian/copyright
     - Convert to machine-readable format version 1.0.
+  * debian/(dirs|menu)
+    - Rename from debian/wmrack.(dirs|menu).
   * debian/patches/add_format_arg_to_fprintf.patch
     - Avoid FTBFS due to -Werror=security build flag.
   * debian/patches/fix_hurd_ftbfs.patch
@@ -30,8 +34,10 @@ wmrack (1.4-3) UNRELEASED; urgency=medium
     - New file; use 3.0 (quilt).
   * debian/watch
     - New file.
+  * debian/wmrack.dirs
+    - Remove unneccessary file; directories already created in Makefile.
 
- -- Doug Torrance <dtorrance@monmouthcollege.edu>  Thu, 14 Aug 2014 21:27:09 -0500
+ -- Doug Torrance <dtorrance@monmouthcollege.edu>  Fri, 15 Aug 2014 18:43:02 -0500
 
 wmrack (1.4-2) unstable; urgency=low
 
