@@ -1,0 +1,24 @@
+Description: Fix -Wformat compiler warnings.
+Author: Doug Torrance <dtorrance@monmouthcollege.edu>
+Last-Update: 2014-12-22
+
+--- a/wmrack.c
++++ b/wmrack.c
+@@ -652,7 +652,7 @@
+ 			    /* add current track to playlist */
+ 			    cdpl_add (playlist, cd, start_track);
+ 			    sprintf (num, "%02d%02d", playlist->tracks,
+-				     playlist->track[playlist->tracks - 1]);
++				     playlist->track[playlist->tracks - 1].num);
+ 			    rack_popup (num);
+ 			}
+ 		    }
+@@ -1488,7 +1488,7 @@
+     {
+ 	dev[0] = src[0] = '\0';
+ 
+-	nfields = sscanf (line, "%s %d:%d %s", &dev, &left, &right, &src);
++	nfields = sscanf (line, "%s %d:%d %s", dev, &left, &right, src);
+ 
+ 	if (nfields >= 3)	/* got at least the left & right info */
+ 	{
