@@ -1,0 +1,47 @@
+Description: Update Makefile.
+ In particular, honor LDFLAGS and DESTDIR.
+Author: Doug Torrance <dtorrance@monmouthcollege.edu>
+Last-Update: 2014-12-21
+
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -34,20 +34,20 @@
+ 	(cd XPM; make standart.style)
+ 
+ wmrack: $(OBJECTS)
+-	$(CC) $(OBJECTS) -o $@ $(LIBS)
++	$(CC) $(LDFLAGS) $(OBJECTS) -o $@ $(LIBS)
+ 
+ install: $(TARGETS) install-bin install-man install-lib
+ 
+ install-bin:
+-	mkdir -p $(BINDIR)
++	mkdir -p $(DESTDIR)$(BINDIR)
+ 	for prog in $(TARGETS); do \
+-		$(INSTALL) $${prog} $(BINDIR) ; \
++		$(INSTALL) $${prog} $(DESTDIR)$(BINDIR) ; \
+ 	done
+ 
+ install-man:
+-	mkdir -p $(MAN1DIR)
++	mkdir -p $(DESTDIR)$(MAN1DIR)
+ 	for man in $(MANPAGES); do \
+-		$(INSTALL_DATA) $${man} $(MAN1DIR) ; \
++		$(INSTALL_DATA) $${man} $(DESTDIR)$(MAN1DIR) ; \
+ 	done
+ 
+ install-lib:
+--- a/XPM/Makefile.in
++++ b/XPM/Makefile.in
+@@ -14,9 +14,9 @@
+ 	$(LN) grey.style standart.style
+ 
+ install:
+-	mkdir -p $(LIBDIR)
++	mkdir -p $(DESTDIR)$(LIBDIR)
+ 	for style in *.style; do \
+ 	  if test "$${style}" != "standart.style"; then \
+-	     $(INSTALL_DATA) $${style} $(LIBDIR); \
++	     $(INSTALL_DATA) $${style} $(DESTDIR)$(LIBDIR); \
+ 	  fi \
+ 	done
