@@ -1,15 +1,21 @@
 wmrack (1.4-4) UNRELEASED; urgency=medium
 
+  * debian/clean
+    - Remove unnecessary file.
+  * debian/control
+    - Bump Standards-Version to 3.9.6; no changes required.
+    - Remove libxt-dev from Build-Depends.
   * debian/patches
     - (fix_kfreebsd_ftbfs.patch) Fix FTBFS on GNU/kFreeBSD.
     - (update_makefile.patch) Honor LDFLAGS and DESTDIR.
+    - (fix_-Wformat.patch) Fix compiler warnings.
   * debian/rules
     - Add get-orig-source target.
     - Remove override_dh_auto_* targets; patched Makefiles instead.
   * debian/watch
     - Use updated file from sepwatch.
 
- -- Doug Torrance <dtorrance@monmouthcollege.edu>  Mon, 22 Dec 2014 10:16:53 -0600
+ -- Doug Torrance <dtorrance@monmouthcollege.edu>  Mon, 22 Dec 2014 10:44:45 -0600
 
 wmrack (1.4-3) unstable; urgency=medium
 
