@@ -1,5 +1,6 @@
 fix_manpage.patch
 add_format_arg_to_fprintf.patch
+rename_configure.in.patch
 update_autotools.patch
 fix_hurd_ftbfs.patch
 fix_kfreebsd_ftbfs.patch
