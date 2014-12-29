@@ -6,3 +6,4 @@ fix_hurd_ftbfs.patch
 fix_kfreebsd_ftbfs.patch
 update_makefile.patch
 fix_-Wformat.patch
+fix_expose_loop.patch

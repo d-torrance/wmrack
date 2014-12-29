@@ -1,0 +1,46 @@
+Description: Fix Expose loop.
+ XShapeCombineMask, needed when switching from CD to mixer mode, generates an
+ Expose event, which was causing the wmrack window to be redrawn constantly.
+ This caused a flickering effect, especially when run without the -w option on
+ Window Maker.  To fix this, we call XShapeCombineMask only when needed.
+Author: Doug Torrance <dtorrance@monmouthcollege.edu>
+Bug-Debian: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=46008
+Last-Update: 2014-12-29
+
+--- a/wmrack.c
++++ b/wmrack.c
+@@ -984,11 +984,6 @@
+     flushExpose (Win);
+     flushExpose (Iconwin);
+ 
+-    XShapeCombineMask (Disp, Win, ShapeBounding, 0, 0,
+-		       rackXpm[curRack].mask, ShapeSet);
+-    XShapeCombineMask (Disp, Iconwin, ShapeBounding, 0, 0,
+-		       rackXpm[curRack].mask, ShapeSet);
+-
+     XCopyArea (Disp, rackXpm[curRack].pixmap, Win, WinGC,
+ 	       0, 0, rackXpm[curRack].attributes.width,
+ 	       rackXpm[curRack].attributes.height, 0, 0);
+@@ -1408,12 +1403,17 @@
+ 	}
+     }
+ 
+-    if (newRack != curRack || force_win)
+-    {
+-	/* Mode has changed, paint new mask and pixmap */
+-	curRack = newRack;
+-	redrawWindow ();
++    /* Mode has changed, paint new mask and pixmap */
++    if (newRack != curRack) {
++        curRack = newRack;
++        redrawWindow ();
++        XShapeCombineMask (Disp, Win, ShapeBounding, 0, 0,
++                          rackXpm[curRack].mask, ShapeSet);
++        XShapeCombineMask (Disp, Iconwin, ShapeBounding, 0, 0,
++                          rackXpm[curRack].mask, ShapeSet);
+     }
++    if (force_win)
++	redrawWindow ();
+ 
+     switch (curRack)
+     {
