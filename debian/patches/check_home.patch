@@ -1,0 +1,44 @@
+Description: Check if HOME environment variable is defined.
+ If it was not, then a segmentation fault would occur.  Exit with an error
+ message instead.
+Author: Doug Torrance <dtorrance@monmouthcollege.edu>
+Bug-Debian: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=716473
+Last-Update: 2014-12-29
+
+--- a/library.c
++++ b/library.c
+@@ -41,9 +41,16 @@
+ char *lib_findfile(char *name, int here)
+ {
+   char path[4096]="";
++  char *home;
+   int i;
+   struct stat st;
+ 
++  home = getenv("HOME");
++  if (home == NULL)
++    {
++      fprintf (stderr, "wmrack: HOME undefined\n");
++      exit (1);
++    }
+   if (here)
+     {
+       strcpy(path,name);
+@@ -54,7 +61,7 @@
+   if (*path==0)
+     for (i=0; lib_personal_path[i]; i++)
+       {
+-	strcpy(path,getenv("HOME"));
++	strcpy(path,home);
+ 	strcat(path,lib_personal_path[i]);
+ 	if (here)
+ 	  {
+@@ -83,7 +90,7 @@
+ 	}
+       if (*path==0)
+ 	{
+-	  strcpy(path,getenv("HOME"));
++	  strcpy(path,home);
+ 	  strcat(path,lib_personal_path[0]);
+ 	  if (mkdir(path,0755))
+ 	    return NULL;
