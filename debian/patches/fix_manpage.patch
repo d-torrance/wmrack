@@ -1,7 +1,7 @@
 Description: Fix manpage.
  In particular, fix typos, escape hyphens, and change .SP to .Sp.
 Author: Doug Torrance <dtorrance@monmouthcollege.edu>
-Last-Update: 2014-08-14
+Last-Update: 2015-01-06
 
 --- a/wmrack.1
 +++ b/wmrack.1
@@ -39,15 +39,17 @@ Last-Update: 2014-08-14
  .Sp
  Another way to call \fBwmrack\fP is to swallow it into the \fBafterstep(1)\fP
  \fBWharf(1)\fP. This is best done placing the following line into your
-@@ -130,7 +130,7 @@
+@@ -130,8 +130,8 @@
  \fBFvwmButtons(1)\fP of the \fBfvwm(1)\fP window manager.
  .SH GENERAL USAGE
  The \fBwmrack\fP features a simple click interface. All times the buttons will
 -show a standart sign which specifies the action it will do. But there are some 
+-noteable extensions to that explained below.
 +show a standard sign which specifies the action it will do. But there are some
- noteable extensions to that explained below.
++notable extensions to that explained below.
  .Sp
  You can always change the controls shown by clicking the middle button (this
+ is the one which shows a disc or a speaker) of the controls. This button will
 @@ -166,7 +166,7 @@
  The cd player also offers a play list functionality. By default it will map
  out all data tracks of the current cdrom, but you can also randomize the list
