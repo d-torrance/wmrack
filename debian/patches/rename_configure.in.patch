@@ -1,7 +1,7 @@
-Description: Rename configure.in to configure.ac to avoid autoconf warning.
- Split from update_autotools.patch.
+Description: Rename configure.in to configure.ac.
+ Avoids autoconf warning.  Split from update_autotools.patch.
 Author: Doug Torrance <dtorrance@monmouthcollege.edu>
-Last-Update: 2014-12-28
+Last-Update: 2015-01-06
 
 --- a/configure.in
 +++ /dev/null
