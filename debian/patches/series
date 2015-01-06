@@ -8,3 +8,4 @@ update_makefile.patch
 fix_-Wformat.patch
 fix_expose_loop.patch
 check_home.patch
+fix_resource_leak.patch

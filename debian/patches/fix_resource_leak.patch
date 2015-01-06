@@ -1,0 +1,15 @@
+Description: Fix resource leak.
+ Call fclose() on file opened with fopen().
+Author: Doug Torrance <dtorrance@monmouthcollege.edu>
+Last-Update: 2015-01-06
+
+--- a/library.c
++++ b/library.c
+@@ -121,6 +121,7 @@
+       lib->f=fopen(lib->name,lib_mode[mode]);
+       lib->mode=mode;
+     }
++  fclose(f);
+   return lib;
+ }
+ 
