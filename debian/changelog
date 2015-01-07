@@ -1,3 +1,11 @@
+wmrack (1.3-1) unstable; urgency=low
+
+  * New upstream release, includes fix for FTBFS on BSD/Hurd
+    (closes: #361724).
+  * Updated FSF address in debian/copyright.
+
+ -- Chris Waters <xtifr@debian.org>  Wed, 26 Apr 2006 15:26:54 -0700
+
 wmrack (1.2-1.1) unstable; urgency=low
 
   * Non-maintainer upload
