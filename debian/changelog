@@ -1,4 +1,4 @@
-wmrack (1.4-4) UNRELEASED; urgency=medium
+wmrack (1.4-4) unstable; urgency=medium
 
   * debian/clean
     - Remove unnecessary file.
@@ -9,13 +9,21 @@ wmrack (1.4-4) UNRELEASED; urgency=medium
     - (fix_kfreebsd_ftbfs.patch) Fix FTBFS on GNU/kFreeBSD.
     - (update_makefile.patch) Honor LDFLAGS and DESTDIR.
     - (fix_-Wformat.patch) Fix compiler warnings.
+    - (rename_configure.in.patch) Split from update_autotools.patch to
+      increase readability.
+    - (fix_expose_loop.patch) Fix flicker when run without -w in Window
+      Maker (Closes: #46008).
+    - (check_home.patch) Avoid segmentation fault when HOME environment
+      variable is undefined (Closes: #716473).
+    - (fix_manpage.patch) Fix additional typo.
+    - (fix_resource_leak.patch) Call fclose() on file opened with fopen().
   * debian/rules
     - Add get-orig-source target.
     - Remove override_dh_auto_* targets; patched Makefiles instead.
   * debian/watch
     - Use updated file from sepwatch.
 
- -- Doug Torrance <dtorrance@monmouthcollege.edu>  Mon, 22 Dec 2014 10:44:45 -0600
+ -- Doug Torrance <dtorrance@monmouthcollege.edu>  Tue, 06 Jan 2015 18:13:08 -0600
 
 wmrack (1.4-3) unstable; urgency=medium
 
@@ -54,7 +62,7 @@ wmrack (1.4-3) unstable; urgency=medium
   * debian/watch
     - New file.
   * debian/wmrack.dirs
-    - Remove unneccessary file; directories already created in Makefile.
+    - Remove unnecessary file; directories already created in Makefile.
 
  -- Doug Torrance <dtorrance@monmouthcollege.edu>  Fri, 15 Aug 2014 18:43:02 -0500
 
