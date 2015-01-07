@@ -1,3 +1,13 @@
+wmrack (1.4-1) unstable; urgency=low
+
+  * New upstream release.  Includes fix for overfrequent polling
+    (closes: #440407).
+  * Patch to fix FTBFS if built twice in a row (closes: #424123).
+  * Patch to permit building with nostrip option (closes: #438292).
+  * Updated menu for new menu policy.
+
+ -- Chris Waters <xtifr@debian.org>  Sun, 30 Mar 2008 13:25:19 -0700
+
 wmrack (1.3-2) unstable; urgency=low
 
   * changed build-dependency on xutils to libxt-dev because the configure

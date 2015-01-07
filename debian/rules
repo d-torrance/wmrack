@@ -12,9 +12,9 @@ stamp-build:
 clean:
 	dh_testdir
 	dh_testroot
-	-$(MAKE) clean
-	-rm -f build Makefile XPM/Makefile XPM/standart.style wmrack \
-	  config.log config.h config.cache config.status .depend
+	[ -f Makefile ] && $(MAKE) clean
+	rm -rf build Makefile XPM/Makefile XPM/standart.style wmrack \
+	  config.log config.h config.cache config.status .depend stamp-build
 	dh_clean
 
 binary-indep: build
@@ -25,7 +25,7 @@ binary-arch: build
 	dh_testroot
 	dh_clean -k
 	dh_installdirs
-	install -m 755 -s wmrack debian/wmrack/usr/bin
+	install -m 755 wmrack debian/wmrack/usr/bin
 	dh_installdocs
 	dh_installmenu
 	dh_installman wmrack.1

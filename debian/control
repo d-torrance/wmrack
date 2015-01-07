@@ -2,7 +2,7 @@ Source: wmrack
 Section: sound
 Priority: optional
 Maintainer: Chris Waters <xtifr@debian.org>
-Standards-Version: 3.6.2
+Standards-Version: 3.7.3
 Build-Depends: libx11-dev, libxext-dev, libxpm-dev, libxt-dev, debhelper (>= 4.0.0)
 
 Package: wmrack
@@ -11,6 +11,7 @@ Section: sound
 Priority: optional
 Depends: ${shlibs:Depends}
 Suggests: wmaker
+Homepage: http://wmrack.sourceforge.net
 Description: Combined CD Player + Mixer designed for WindowMaker
  This dockapp combines a CD player and a mixer in one 48x48 window.
  Very efficient on screen real-estate.  Especially handy if you mainly
@@ -20,4 +21,3 @@ Description: Combined CD Player + Mixer designed for WindowMaker
  It's designed with WindowMaker in mind, but it works fine with any
  window manager, and can be swallowed by afterstep/fvwm/gnome panel/etc.
  .
- Homepage: http://wmrack.sourceforge.net

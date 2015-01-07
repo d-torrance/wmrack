@@ -8,6 +8,9 @@ Oliver Graf, but he has lost interest, and the current maintainer
 is Chris Waters <xtifr@debian.org>, who is also the maintainer of
 the Debian package.
 
+Copyright 2001, 2003 Oliver Graf
+Copyright 2003-2008 Oliver Graf and Chris Waters
+
 wmrack is distributed under the terms of the GNU Public License.
 
 You can find a copy of the GNU General Public License in the directory
