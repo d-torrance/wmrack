@@ -1,5 +1,0 @@
-?package(wmrack):\
-   needs="x11"\
-   section="Apps/Sound"\
-   title="WMrack"\
-   command="/usr/bin/X11/wmrack -w"

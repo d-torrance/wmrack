@@ -3,7 +3,7 @@
 .if t .sp .3
 .if n .sp
 ..
-.TH wmrack 1.0 "1 June 1997" wmrack
+.TH wmrack 1 "1 June 1997" wmrack
 .UC
 .SH NAME
 \fBwmrack\fP \- the WindowMaker Sound Control

@@ -1,0 +1,4 @@
+?package(wmrack): needs="x11"\
+   section="Apps/Sound" hints="Dockapp, Mixer, Player"\
+   title="WMrack" longtitle="WMrack CD Player + Mixer"\
+   command="/usr/bin/wmrack -w"

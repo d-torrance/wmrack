@@ -1,18 +1,16 @@
 #!/usr/bin/make -f
 
 #export DH_VERBOSE = 1
+export DH_COMPAT=3
 
 package=wmrack
 
 build: stamp-build
-
-stamp-build: Makefile
+stamp-build:
 	dh_testdir
+	./configure --without-debug --without-ctrl
 	$(MAKE)
 	touch stamp-build
-
-Makefile: 
-	./configure --without-debug
 
 clean:
 	dh_testdir
@@ -24,23 +22,18 @@ clean:
 	dh_clean
 
 binary-indep: build
-#	dh_testdir -i
-#	dh_testroot
-#	dh_clean -i -k
+
 
 binary-arch: build
 	dh_testdir
 	dh_testroot
 	dh_clean -k
 	dh_installdirs
-	install -m 755 -s wmrack debian/tmp/usr/X11R6/bin
-	install -m 755 -s cdctrl debian/tmp/usr/X11R6/bin
-	install -m 755 -s mixctrl debian/tmp/usr/X11R6/bin
+	install -m 755 -s wmrack debian/wmrack/usr/bin
 	dh_installdocs
 	dh_installmenu
-	install -m 0644 wmrack.man debian/tmp/usr/X11R6/man/man1/wmrack.1x
-	dh_undocumented mixctrl.1x cdctrl.1x
-	dh_installchangelogs
+	dh_installman wmrack.man
+	dh_installchangelogs CHANGES
 	dh_strip
 	dh_compress
 	dh_fixperms
@@ -53,9 +46,3 @@ binary-arch: build
 binary:	binary-indep binary-arch
 
 .PHONY: binary binary-arch binary-indep clean build
-
-# Local variables:
-# mode: makefile
-# mode: font-lock
-# End:
-

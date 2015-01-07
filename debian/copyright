@@ -1,7 +1,12 @@
-This package was debianized by Marcelo E. Magallon
+This package was originally debianized by Marcelo E. Magallon
 <mmagallo@efis.ucr.ac.cr> on Sun, 5 Mar 1998 22:42:00 -0600.
 
-It was downloaded from http://wm.wep.net/
+It was downloaded from http://prdownloads.sourceforge.net/wmrack/
+
+The original author (and current copyright holder) of WMRack is
+Oliver Graf, but he has lost interest, and the current maintainer
+is Chris Waters <xtifr@debian.org>, who is also the maintainer of
+the Debian package.
 
 wmrack is distributed under the terms of the GNU Public License.
 

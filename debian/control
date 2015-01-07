@@ -1,8 +1,9 @@
 Source: wmrack
 Section: sound
 Priority: optional
-Maintainer: Sean E. Perry <shaleh@debian.org>
-Standards-Version: 2.4.0.0
+Maintainer: Chris Waters <xtifr@debian.org>
+Standards-Version: 3.5.0
+Build-Depends: xlibs-dev, xutils, debhelper (>= 3.0.0)
 
 Package: wmrack
 Architecture: any
@@ -10,8 +11,11 @@ Section: sound
 Priority: optional
 Depends: ${shlibs:Depends}
 Suggests: wmaker
-Description: A rack like program designed for Window Maker
- wmrack is both a CD-player and a mixer.  Its look is very
- customizable and uses very little screen realstate.  It's desinged
- with Window Maker in mind, but there's nothing in the program that
- makes it require a particular window manager.
+Description: Combined CD Player + Mixer designed for WindowMaker
+ This dockapp combines a CD player and a mixer in one 48x48 window.
+ Very efficient on screen real-estate.  Especially handy if you mainly
+ want a mixer, and only rarely use a CD player, but want to have one
+ around just in case.
+ .
+ It's designed with WindowMaker in mind, but it works fine with any
+ window manager, and can be swallowed by afterstep/fvwm/gnome panel/etc.
