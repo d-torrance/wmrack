@@ -1,0 +1,12 @@
+CC=gcc
+RM=rm -f
+CFLAGS=-ggdb -Wall -DDEBUG
+OBJS=cdrom.o cdctrl.o
+
+all: clean cdctrl
+
+clean: 
+	$(RM) *.o cdctrl
+
+cdctrl: $(OBJS)
+	gcc $(OBJS) -o cdctrl

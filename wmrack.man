@@ -1,0 +1,126 @@
+.ds = \-\^\-
+.de Sp
+.if t .sp .3
+.if n .sp
+..
+.TH wmrack 1.0 "1 June 1997" wmrack
+.UC
+.SH NAME
+\fBwmrack\fP \- the WindowMaker Sound Control
+.SH SYNOPSIS
+.B wmrack
+[options]
+.SH DESCRIPTION
+The \fBwmrack\fP is CD player and Audio Mixer written to play audio CD's
+integrated in AfterSteps Wharf module or docked to WindowMaker.
+\fBwmrack\fP handles mounted volumes, opens and closes the tray, can
+display the current position in various ways and skips also data tracks.
+.SH OPTIONS
+.TP
+\fB\-d\fP \fBDEVICE\fP or \fB\*=device\fP \fBDEVICE\fP
+Sets the CD-ROM device. This defaults to /dev/cdrom.
+.TP
+\fB\-h\fP or  \fB\*=help\fP
+Prints a summary of supported options and their default values.
+.TP
+\fB\-l\fP \fBCOLSPEC\fP or \fB\*=ledcolor\fP \fBCOLSPEC\fP
+Specifies the color of the led. It is darkened two times (for a total of
+three colors) to get all needed colors. So better use a bright color.
+.Sp
+For the design of own XPM, the ledcolor is made avaiable through the use
+of the symbolic xpm color names
+.I led_color_high,
+.I led_color_low,
+and
+.I led_color_med.
+There is also a symbol named
+.I led_color_back
+to get the default background color of the led\-display.
+.Sp
+To find out what colors are available, try
+.I showrgb
+(part of X11).
+.TP
+\fB\-p\fP or \fB\*=noprobe\fP
+This option disables the startup probing for a cd. Default is to probe the
+cdrom. This will close the tray and read the TOC of the cd (if there is one).
+.TP
+\fB\-s\fP \fBSTYLEFILE\fP or \fB\*=style\fP \fBSTYLEFILE\fP
+.B wmrack
+will try to load its window\-pixmaps from the specified
+.B STYLEFILE.
+It will search this file for XPM pixmaps named
+.I cdnodisc,
+.I cdplaying,
+.I cdpaused,
+.I cdstopped,
+.I cdled,
+.I mixer,
+and
+.I mixled.
+If some of those are not defined, the compile\-time defaults will be used.
+.TP
+\fB\-w\fP or \fB\*=withdrawn\fP
+Starts the
+.B wmrack
+in withdrawn window state. This is useful to dock the window to
+.B WindowMaker.
+.SH INVOCATION
+\fBwmrack\fP can be called using different ways. The most common invocation
+is from your dock file:
+.Sp
+        wmrack
+        WMRack
+        \fIPOSITION\fP 2 -1 0
+        wmrack
+        --withdrawn
+.Sp
+Another way to call \fBwmrack\fP is to swallow it into the \fBafterstep (1)\fP
+\fBWharf (1)\fP. This is best done playcing the following line into your
+\fI.steprc\fP:
+.Sp
+	*Wharf WMRack nil Swallow "wmrack" wmrack &
+.Sp
+This method will also work for other button\-bars, such as the \fBFvwmButtons (1)\fP
+of the \fBfvwm (1)\fP window manager.
+.SH USAGE
+The \fBwmrack\fP features a simple click interface. All times the buttons will
+show a standart sign which specifies the action it will do. But there are some 
+noteable extensions to that explained below.
+.Sp
+The default behavior of \fBwmrack\fP is to try to read the cdrom at
+startup. If there was no cd, it will not try again unless you press the close
+or play button. This will close the cdrom and again try to read it. Unless
+there is a cd, \fBwmrack\fP will again suspend until your next action.
+.TP
+.B skip
+By pressing the button down and holding it on one of the prev/next track
+buttons the cdrom goes fast forward or backward.
+.TP
+.B time left
+A button-1 click into the time display switches between time running and time
+left display.
+.TP
+.B total time
+A button-2 click into the time display switches between track and total time.
+.TP
+.B repeat
+A button-3 click into the time display cycles through normal mode, repeat all, 
+and repeat one play mode.
+.SH COPYRIGHTS
+Copyright 1997, Oliver Graf <ograf@fga.de>.
+Most styles copyright 1997, Heiko Wagner <hwagner@fga.de>.
+.Sp
+No guarantees or warranties or anything are provided or implied in any way
+whatsoever. Use this program at your own risk. Permission to use this program
+for any purpose is given, as long as the copyright is kept intact.
+.SH AUTHORS
+Oliver Graf <ograf@fga.de> -- the coding
+.Sp
+Heiko Wagner <hwagner@fga.de> -- the hyped window shapes
+.SH CREDITS
+Rob Malda <malda@cs.hope.edu> -- who had written ascd and asmixer
+.Sp
+Michael Kurz <mkurz@rzws.fh-aalen.de> -- also for ascd and asmixer
+.Sp
+Thomas McWilliams <tgm@netcom.com> -- who has done Workbone
