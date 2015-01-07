@@ -1,0 +1,10 @@
+cdctrl and mixctrl are test programs for the cdrom.* and mixer.*
+stuff.
+
+To compile it you must give configure the --with-ctrl switch.
+
+Without the DEBUG and gdb stuff it also gives a useful command-line
+interface to your cdrom and mixer.
+
+-----
+$Id: README.ctrl,v 1.3 1997/07/17 14:51:45 ograf Exp $

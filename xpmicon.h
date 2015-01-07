@@ -1,9 +1,11 @@
 /*
- * $Id: xpmicon.h,v 1.2 1997/06/04 19:41:38 ograf Exp $
+ * $Id: xpmicon.h,v 1.4 1997/07/12 14:11:37 ograf Exp $
  *
  * part of wmrack
  *
  * handles the whole pixmap stuff
+ *
+ * Copyright (c) 1997 by Oliver Graf <ograf@fga.de>
  */
 #ifndef _XPMICON_H
 #define _XPMICON_H
@@ -26,15 +28,17 @@ typedef struct {
 #define RACK_MIXER      4
 #define RACK_LED_PLAYER 5
 #define RACK_LED_MIXER  6
-#define RACK_MAX        7
+#define RACK_LED_ALPHA  7
+#define RACK_MAX        8
 
 extern XpmIcon rackXpm[];
-extern int curRack, curLed;
+extern int curRack;
+extern char *ledAlphabet;
 
 #define currentXpm(w) rackXpm[curRack].##w
-#define currentLed(w) rackXpm[curLed].##w
+#define ledXpm(x,w) rackXpm[x].##w
 
-int xpm_setDefaultAttr(Display *disp, Drawable draw, char *color);
+int xpm_setDefaultAttr(Display *disp, Drawable draw, char *color, char *back);
 int xpm_loadSet(Display *disp, Drawable draw, char *filename);
 int xpm_setDefaultSet(Display *disp, Drawable draw, int num);
 void xpm_freeSet(Display *disp);
