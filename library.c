@@ -1,5 +1,5 @@
 /*
- * $Id: library.c,v 1.4.2.1 1998/08/05 11:42:58 ograf Exp $
+ * $Id: library.c,v 1.1.1.1 2001/02/12 22:25:47 xtifr Exp $
  *
  * part of wmrack
  *

@@ -1,5 +1,5 @@
 /*
- * $Id: mixctrl.c,v 1.3 1997/07/12 14:11:37 ograf Exp $
+ * $Id: mixctrl.c,v 1.1.1.1 2001/02/12 22:25:47 xtifr Exp $
  *
  * Part of WMRack
  *

@@ -1,5 +1,5 @@
 /*
- * $Id: xpmicon.h,v 1.4 1997/07/12 14:11:37 ograf Exp $
+ * $Id: xpmicon.h,v 1.1.1.1 2001/02/12 22:26:11 xtifr Exp $
  *
  * part of wmrack
  *

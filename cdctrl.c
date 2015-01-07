@@ -1,5 +1,5 @@
 /*
- * $Id: cdctrl.c,v 1.7 1997/10/30 11:24:51 ograf Exp $
+ * $Id: cdctrl.c,v 1.1.1.1 2001/02/12 22:25:33 xtifr Exp $
  *
  * Part of WMRack
  *

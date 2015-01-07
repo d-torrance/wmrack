@@ -1,5 +1,5 @@
 /*
- * $Id: mixer.h,v 1.5 1997/07/13 15:28:16 ograf Exp $
+ * $Id: mixer.h,v 1.1.1.1 2001/02/12 22:25:53 xtifr Exp $
  *
  * Copyright (c) 1997 by Oliver Graf <ograf@fga.de>
  */
