@@ -1,11 +1,11 @@
 /*
- * $Id: cdrom.h,v 1.1.1.1 2001/02/12 22:25:42 xtifr Exp $
+ * $Id: cdrom.h,v 1.2 2003/10/01 22:44:19 xtifr Exp $
  *
  * Copyright (c) 1997 by Oliver Graf <ograf@fga.de>
  */
 
-#ifndef _MY_CDROM_H
-#define _MY_CDROM_H
+#ifndef WMRACK_CDROM_H_
+#define WMRACK_CDROM_H_
 
 /* cd status modes */
 #define CDM_CLOSED -1
@@ -139,9 +139,4 @@ int cdpl_free(CDPlayList *list);
 int cdpl_add(CDPlayList *list, CD *cd, int track);
 int cdpl_reset(CDPlayList *list);
 
-#define cd_info(c,w) (c->info.##w)
-#define cd_cur(c,w)  (c->info.current.##w)
-#define cd_play(c,w) (c->info.play.##w)
-#define cd_list(c,w) (c->info.list.##w)
-
-#endif
+#endif /* WMRACK_CDROM_H_ */

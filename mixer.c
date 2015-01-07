@@ -1,5 +1,5 @@
 /*
- * $Id: mixer.c,v 1.1.1.1 2001/02/12 22:25:53 xtifr Exp $
+ * $Id: mixer.c,v 1.2 2003/10/01 22:44:19 xtifr Exp $
  *
  * mixer utility functions for WMRack
  *
@@ -23,8 +23,11 @@
 
 char *mixer_labels[]=SOUND_DEVICE_LABELS;
 char *mixer_names[]=SOUND_DEVICE_NAMES;
-char *mixer_shortnames[]={"VO", "BA", "TR", "SY", "PC", "SP", "LI", "MI",
-			  "CD", "MX", "P2", "RE", "IG", "OG", "L1", "L2", "L3"};
+char *mixer_shortnames[]={"VO", "BA", "TR", "SY", "PC", "SP",
+			  "LI", "MI", "CD", "MX", "P2", "RE",
+			  "IG", "OG", "L1", "L2", "L3",
+			  "D1", "D2", "D3", "PI", "PO",
+			  "VI", "RA", "MO"};
 int mixer_devices=SOUND_MIXER_NRDEVICES;
 
 /*
@@ -100,8 +103,6 @@ int mixer_getinfo(MIXER *mix)
  */
 int mixer_readvol(MIXER *mix, int dev)
 {
-  int i;
-
   if (!mix || mix->fd==0)
     return -1;
 
@@ -119,7 +120,7 @@ int mixer_readvol(MIXER *mix, int dev)
 	  return 1;
     }
   else
-    mix->cur_vol[i]=-1;
+    return -1;
 
   return 0;
 }
